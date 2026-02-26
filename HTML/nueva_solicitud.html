@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Solicitud</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+   	let usuario = "";
+	//Mostrar usuario en cabecera
+	document.addEventListener('DOMContentLoaded', function () {
+    		const urlParams = new URLSearchParams(window.location.search);
+   		usuario = urlParams.get('usuario');
+    		document.getElementById('user-name').textContent = usuario;
+
+            	// Rellenar la fecha de solicitud con la fecha de hoy
+            	const today = new Date();
+            	const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD
+            	document.getElementById('fecha-solicitud').value = formattedDate;
+		cerrarModal1();
+		cerrarModal2();
+
+	});
+	function ir_miColeccion() {
+	    window.location.href = `Mi_coleccion.html?usuario=${encodeURIComponent(usuario)}`;
+	    return true;
+	}
+	function ir_SolicitudesEnviadas() {
+	    window.location.href = `Solicitudes_Enviadas.html?usuario=${encodeURIComponent(usuario)}`;
+	    return true;
+	}
+	function ir_SolicitudesRecibidas() {
+	    window.location.href = `Solicitudes_Recibidas.html?usuario=${encodeURIComponent(usuario)}`;
+	    return true;
+	}
+
+        function abrirModal1() {
+            document.getElementById("modal1").style.display = "flex";
+        }
+
+        function cerrarModal1() {
+            document.getElementById("modal1").style.display = "none";
+        }
+        function abrirModal2() {
+            document.getElementById("modal2").style.display = "flex";
+        }
+
+        function cerrarModal2() {
+            document.getElementById("modal2").style.display = "none";
+        }
+        
+        function Buscar1() {
+            //Buscar cartas con nombre parecido en campo 1
+        }
+
+        function Buscar2() {
+            //Buscar cartas con nombre parecido en campo 2
+        }
+        
+        function seleccionarCarta1(nombre, dueno, event) {
+    		if (event) event.preventDefault(); // Evita que el formulario se envíe
+    		document.getElementById("carta").value = nombre + " (Dueño: " + dueno + ")";
+    		cerrarModal1();
+        }
+        function seleccionarCarta2(nombre, event) {
+    		if (event) event.preventDefault(); // Evita que el formulario se envíe
+            	document.getElementById("micarta").value = nombre  + " (Dueño: " + usuario + ")";
+            	cerrarModal2();
+        }
+
+    </script>
+</head>
+<body>
+    <header class="header">
+    	<div class="header-left">
+        	<img src="logo.png" alt="Logo" class="logo">
+        	<h1>Pikachu Forever</h1>
+    	</div>
+
+    	<nav class="menu">
+       	 	<a href="#" onclick="ir_miColeccion(); return false;">Mi Colección</a>
+        	<a href="#" onclick="ir_SolicitudesRecibidas(); return false;">Solicitudes Recibidas</a>
+        	<a class="active" href="#" onclick="ir_SolicitudesEnviadas(); return false;">Solicitudes Enviadas</a>
+    	</nav>
+	
+    	<div class="user-info">
+       	 	<div class="user-name" id="user-name"></div> 
+        	<a href="index.html" class="logout-link"> <i class="fas fa-sign-out-alt"></i>
+        	</a>
+    	</div>
+
+    </header>
+
+    <main>   
+	<div class="content-container">
+        <form id="nueva-solicitud-form">
+	    <h2>Nueva Solicitud</h2>
+            <!-- Carta de otro usuario que se quiere -->
+	    <div>
+		<label for="carta">Carta de otro usuario que te gustaría que estuviera en tu colección:</label>	    	
+            
+	       <div class="adyacente">
+               	<input type="text" id="carta" name="carta" maxlength="20" readonly>
+				<button type="button" onclick="abrirModal1()">...</button>
+           </div>
+	    </div>
+	    
+
+    <!-- Modal para la búsqueda de la primera carta-->
+    <div id="modal1" class="ventana_modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal1()">&times;</span>
+            <input type="text" id="buscar1" placeholder="Buscar carta por nombre...">
+			<button type="button" onclick="Buscar1()">Buscar</button>
+	    <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Dueño</th>
+                        <th>Seleccionar</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-modal1">
+                    <tr>
+                	<td>Pikachu</td>
+                	<td>user2</td>
+                	<td><button onclick="seleccionarCarta1('Pikachu', 'user2', event)">Seleccionar</button></td>
+                    </tr>
+                    <tr>
+                        <td>Bulbasaur</td>
+                        <td>user3</td>
+                        <td><button onclick="seleccionarCarta1('Bulbasaur', 'user3', event)">Seleccionar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+	    </div>
+        </div>
+    </div>
+
+
+            <!-- Carta que se ofrece a cambio -->
+	    <div>
+		<label for="micarta">Carta de tu colección que ofreces a cambio:</label>	    	
+            
+	       <div class="adyacente">
+                <input type="text" id="micarta" name="micarta" maxlength="20" readonly>
+				<button type="button" onclick="abrirModal2()">...</button>
+           </div>
+	    </div>
+
+    <!-- Modal para la búsqueda de la segunda carta-->
+    <div id="modal2" class="ventana_modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal2()">&times;</span>
+            <input type="text" id="buscar2" placeholder="Buscar entre mis cartas por nombre...">
+			<button type="button" onclick="Buscar2()">Buscar</button>
+	    <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Estado</th>
+                        <th>Seleccionar</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-modal2">
+                    <tr>
+                	<td>Pikachu</td>
+                	<td>Activo</td>
+                	<td><button onclick="seleccionarCarta2('Pikachu', event)">Seleccionar</button></td>
+                    </tr>
+                    <tr>
+                        <td>Bulbasaur</td>
+                        <td>Activo</td>
+                        <td><button onclick="seleccionarCarta2('Bulbasaur', event)">Seleccionar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+
+            <!-- Campo Estado -->
+            <div>
+                <label for="estado">Estado de la Solicitud:</label>
+                <input type="text" id="estado" name="estado" value="Pendiente" readonly>
+            </div>
+
+            <!-- Campo Fecha de solicitud -->
+            <div>
+                <label for="fecha-solicitud">Fecha de la Solicitud:</label>
+                <input type="text" id="fecha-solicitud" name="fecha-solicitud" value="" readonly>
+            </div>
+
+            <!-- Botones -->
+            <div>
+                <button class="aceptar" type="submit">Aceptar</button>
+                <button class="cancelar" type="button" class="navegacion" onclick="window.history.back();">Cancelar</button>
+            </div>
+        </form>
+	</div>
+    </main>
+</body>
+</html>
