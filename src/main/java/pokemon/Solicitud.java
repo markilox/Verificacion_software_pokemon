@@ -42,25 +42,25 @@ public class Solicitud {
     // Método para aceptar una solicitud
     public void aceptar(){
 
-        if (estado == EstadoS.PENDIENTE){
-            estado = EstadoS.ACEPTADO;
+        if (this.estado == EstadoS.PENDIENTE){
+            this.estado = EstadoS.ACEPTADO;
 
-            carta1 = buscarCartaPorId(idCarta1);
-            carta2 = buscarCartaPorId(idCarta2);
+            Carta carta1 = buscarCartaPorId(this.idCarta1);
+            Carta carta2 = buscarCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
                 logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
                 return;
             }
 
-            carta1.dueno = dueno2;
-            carta2.dueno = dueno1;
+            carta1.dueno = this.dueno2;
+            carta2.dueno = this.dueno1;
 
             carta1.estado = EstadoC.DISPONIBLE;
             carta2.estado = EstadoC.DISPONIBLE;
 
-            control1 = carta1.modificarCarta();
-            control2 = carta2.modificarCarta();
-            control3 = modificarSolicitud();
+            boolean control1 = carta1.modificarCarta();
+            boolean control2 = carta2.modificarCarta();
+            boolean control3 = this.modificarSolicitud();
 
             if(control1 && control2 && control3){
                 logger.info("Intercambio realizado correctamente.");
@@ -77,11 +77,11 @@ public class Solicitud {
 
     // Método para rechazar
     public void rechazar(){
-        if (estado == EstadoS.PENDIENTE){
-            estado = EstadoS.RECHAZADO;
+        if (this.estado == EstadoS.PENDIENTE){
+            this.estado = EstadoS.RECHAZADO;
 
-            carta1 = buscarCartaPorId(idCarta1);
-            carta2 = buscarCartaPorId(idCarta2);
+            Carta carta1 = buscarCartaPorId(this.idCarta1);
+            Carta carta2 = buscarCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
                 logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
                 return;
@@ -90,9 +90,9 @@ public class Solicitud {
             carta1.estado = EstadoC.DISPONIBLE;
             carta2.estado = EstadoC.DISPONIBLE;
 
-            control1 = carta1.modificarCarta();
-            control2 = carta2.modificarCarta();
-            control3 = modificarSolicitud();
+            boolean control1 = carta1.modificarCarta();
+            boolean control2 = carta2.modificarCarta();
+            boolean control3 = this.modificarSolicitud();
 
             if(control1 && control2 && control3){
                 logger.info("Intercambio rechazado correctamente.");
@@ -109,10 +109,10 @@ public class Solicitud {
 
     // Método para cancelar
     public void cancelar(){
-        if (estado == EstadoS.PENDIENTE){
+        if (this.estado == EstadoS.PENDIENTE){
 
-            carta1 = buscarCartaPorId(idCarta1);
-            carta2 = buscarCartaPorId(idCarta2);
+            Carta carta1 = buscarCartaPorId(this.idCarta1);
+            Carta carta2 = buscarCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
                 logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
                 return;
@@ -121,9 +121,9 @@ public class Solicitud {
             carta1.estado = EstadoC.DISPONIBLE;
             carta2.estado = EstadoC.DISPONIBLE;
 
-            control1 = carta1.modificarCarta();
-            control2 = carta2.modificarCarta();
-            control3 = borrarSolicitud();
+            boolean control1 = carta1.modificarCarta();
+            boolean control2 = carta2.modificarCarta();
+            boolean control3 = this.borrarSolicitud();
 
             if(control1 && control2 && control3){
                 logger.info("Intercambio cancelado correctamente.");
@@ -145,13 +145,13 @@ public class Solicitud {
 
         try {
             String sql = "INSERT INTO solicitudes (idSolicitud, idCarta1, dueno1, idCarta2, dueno2, fechaSolicitud, estado) VALUES (" +
-                    idSolicitud + "," +
-                    idCarta1 + "," +
-                    "'" + dueno1 + "'," +
-                    idCarta2 + "," +
-                    "'" + dueno2 + "'," +
-                    fechaSolicitud + ","  +
-                    "'" + estado + "'," +
+                    this.idSolicitud + "," +
+                    this.idCarta1 + "," +
+                    "'" + this.dueno1 + "'," +
+                    this.idCarta2 + "," +
+                    "'" + this.dueno2 + "'," +
+                    this.fechaSolicitud + ","  +
+                    "" + this.estado + "," +
                     ")";
 
             int resultado = db.executeUpdate(sql);
@@ -169,13 +169,12 @@ public class Solicitud {
 
         try {
             String sql = "UPDATE solicitudes SET " +
-                    "idCarta1=" + idCarta1 + ", " +
-                    "dueno1='" + dueno1 + "', " +
-                    "idCarta2=" + idCarta2 + ", " +
-                    "dueno2='" + dueno2 + "', " +
-                    "fechaSolicitud=" + fechaSolicitud + ", " +
-                    "estado='" + estado + "', " +
-                    "WHERE idSolicitud=" + idSolicitud;
+                    "idCarta1=" + this.idCarta1 + ", " +
+                    "dueno1='" + this.dueno1 + "', " +
+                    "idCarta2=" + this.idCarta2 + ", " +
+                    "dueno2='" + this.dueno2 + "', " +
+                    "estado='" + this.estado + "', " +
+                    "WHERE idSolicitud=" + this.idSolicitud;
 
             int resultado = db.executeUpdate(sql);
             return resultado > 0;
@@ -191,7 +190,7 @@ public class Solicitud {
         db.connect();
 
         try {
-            String sql = "DELETE FROM solicitudes WHERE idSolicitud=" + idSolicitud;
+            String sql = "DELETE FROM solicitudes WHERE idSolicitud=" + this.idSolicitud;
 
             int resultado = db.executeUpdate(sql);
             return resultado > 0;
