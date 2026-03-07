@@ -22,7 +22,7 @@ public class Solicitud {
     public EstadoS estado;
 
     // Constructor para crear una solicitud desde BD
-    public Solicitud(int idSolicitud, int idCarta1, String dueno1, int idCarta2, String dueno2, String estado, Date fechaSolicitud) {
+    public Solicitud(int idSolicitud, int idCarta1, String dueno1, int idCarta2, String dueno2, EstadoS estado, Date fechaSolicitud) {
         this.idSolicitud = idSolicitud;
         this.idCarta1 = idCarta1;
         this.dueno1 = dueno1;
