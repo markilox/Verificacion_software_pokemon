@@ -45,8 +45,8 @@ public class Solicitud {
         if (this.estado == EstadoS.PENDIENTE){
             this.estado = EstadoS.ACEPTADO;
 
-            Carta carta1 = buscarCartaPorId(this.idCarta1);
-            Carta carta2 = buscarCartaPorId(this.idCarta2);
+            Carta carta1 = obtenerCartaPorId(this.idCarta1);
+            Carta carta2 = obtenerCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
                 logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
                 return;
@@ -80,8 +80,8 @@ public class Solicitud {
         if (this.estado == EstadoS.PENDIENTE){
             this.estado = EstadoS.RECHAZADO;
 
-            Carta carta1 = buscarCartaPorId(this.idCarta1);
-            Carta carta2 = buscarCartaPorId(this.idCarta2);
+            Carta carta1 = obtenerCartaPorId(this.idCarta1);
+            Carta carta2 = obtenerCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
                 logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
                 return;
@@ -111,8 +111,8 @@ public class Solicitud {
     public void cancelar(){
         if (this.estado == EstadoS.PENDIENTE){
 
-            Carta carta1 = buscarCartaPorId(this.idCarta1);
-            Carta carta2 = buscarCartaPorId(this.idCarta2);
+            Carta carta1 = obtenerCartaPorId(this.idCarta1);
+            Carta carta2 = obtenerCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
                 logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
                 return;
