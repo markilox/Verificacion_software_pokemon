@@ -52,17 +52,15 @@ public class Solicitud {
                 return;
             }
 
-            carta1.dueno = this.dueno2;
-            carta2.dueno = this.dueno1;
+            boolean control1 = carta1.actualizarDueno(this.dueno2);
+            boolean control2 = carta2.actualizarDueno(this.dueno1);
 
-            carta1.estado = EstadoC.DISPONIBLE;
-            carta2.estado = EstadoC.DISPONIBLE;
+            boolean control3 = carta1.actualizarEstado(EstadoC.DISPONIBLE);
+            boolean control4 = carta2.actualizarEstado(EstadoC.DISPONIBLE);
 
-            boolean control1 = carta1.modificarCarta();
-            boolean control2 = carta2.modificarCarta();
-            boolean control3 = this.modificarSolicitud();
+            boolean control5 = this.modificarSolicitud();
 
-            if(control1 && control2 && control3){
+            if(control1 && control2 && control3 && control4 && control5){
                 logger.info("Intercambio realizado correctamente.");
             }
             else{
@@ -87,11 +85,8 @@ public class Solicitud {
                 return;
             }
 
-            carta1.estado = EstadoC.DISPONIBLE;
-            carta2.estado = EstadoC.DISPONIBLE;
-
-            boolean control1 = carta1.modificarCarta();
-            boolean control2 = carta2.modificarCarta();
+            boolean control1 = carta1.actualizarEstado(EstadoC.DISPONIBLE);
+            boolean control2 = carta2.actualizarEstado(EstadoC.DISPONIBLE);
             boolean control3 = this.modificarSolicitud();
 
             if(control1 && control2 && control3){
@@ -118,11 +113,8 @@ public class Solicitud {
                 return;
             }
 
-            carta1.estado = EstadoC.DISPONIBLE;
-            carta2.estado = EstadoC.DISPONIBLE;
-
-            boolean control1 = carta1.modificarCarta();
-            boolean control2 = carta2.modificarCarta();
+            boolean control1 = carta1.actualizarEstado(EstadoC.DISPONIBLE);
+            boolean control2 = carta2.actualizarEstado(EstadoC.DISPONIBLE);
             boolean control3 = this.borrarSolicitud();
 
             if(control1 && control2 && control3){

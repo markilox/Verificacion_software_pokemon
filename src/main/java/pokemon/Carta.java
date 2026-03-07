@@ -49,24 +49,37 @@ public class Carta {
     // ===== MÉTODOS PÚBLICOS =====
 
     public boolean guardar() throws Exception {
-        System.out.println("Guardando carta: " + this.nombre);
+        logger.info("Guardando carta: "+ this.nombre.);
         return insertarCartaBD();
     }
 
-    public boolean actualizar() throws Exception {
-        System.out.println("Actualizando carta id: " + this.idCarta);
+    public boolean actualizarDueno(String nuevoDueno) throws Exception {
+        logger.info("Actualizando carta id: " + this.idCarta);
+        this.dueno = nuevoDueno;
+        return modificarCartaBD();
+    }
+
+    public boolean actualizarNombre(String nuevoNombre) throws Exception {
+        logger.info("Actualizando carta id: " + this.idCarta);
+        this.nombre = nuevoNombre;
+        return modificarCartaBD();
+    }
+
+    public boolean actualizarNombre(String nuevoTipo) throws Exception {
+        logger.info("Actualizando carta id: " + this.idCarta);
+        this.tipo = nuevoTipo;
+        return modificarCartaBD();
+    }
+
+    public boolean actualizarEstado(EstadoC nuevoEstado) throws Exception {
+        logger.info("Actualizando carta id: " + this.idCarta);
+        this.estado = nuevoEstado;
         return modificarCartaBD();
     }
 
     public boolean eliminar() throws Exception {
-        System.out.println("Eliminando carta id: " + this.idCarta);
+        logger.info("Eliminando carta id: " + this.idCarta);
         return borrarCartaBD();
-    }
-
-    public boolean actualizarEstado(EstadoC nuevoEstado) throws Exception {
-        System.out.println("Actualizando estado carta " + this.idCarta + " -> " + nuevoEstado);
-        this.estado = nuevoEstado;
-        return actualizarEstadoBD();
     }
 
     // ===== MÉTODOS PRIVADOS (SQL REAL) =====
@@ -84,9 +97,8 @@ public class Carta {
                     this.puntuacion + ", " +
                     "'" + this.estado + "', NOW())";
 
-            System.out.println("SQL INSERT: " + sql);
-
             int resultado = db.executeUpdate(sql);
+            logger.info("Nueva carta creada correctamente.");
 
             return resultado > 0;
 
@@ -114,9 +126,8 @@ public class Carta {
                     "Estado='" + this.estado + "' " +
                     "WHERE id_carta=" + this.idCarta;
 
-            System.out.println("SQL UPDATE: " + sql);
-
             int resultado = db.executeUpdate(sql);
+            logger.info("Modificación realizada correctamente.");
 
             return resultado > 0;
 
@@ -138,9 +149,8 @@ public class Carta {
 
             String sql = "DELETE FROM Carta WHERE id_carta=" + this.idCarta;
 
-            System.out.println("SQL DELETE: " + sql);
-
             int resultado = db.executeUpdate(sql);
+            logger.info("Eliminación realizada correctamente.");
 
             return resultado > 0;
 
@@ -153,30 +163,4 @@ public class Carta {
             db.disconnect();
         }
     }
-
-    private boolean actualizarEstadoBD() {
-        DatabaseManager db = new DatabaseManager();
-
-        try {
-            db.connect();
-
-            String sql = "UPDATE Carta SET Estado='" + this.estado + "' WHERE id_carta=" + this.idCarta;
-
-            System.out.println("SQL UPDATE ESTADO: " + sql);
-
-            int resultado = db.executeUpdate(sql);
-
-            return resultado > 0;
-
-        } catch (Exception e) {
-            System.err.println("ERROR actualizando estado carta");
-            e.printStackTrace();
-            return false;
-
-        } finally {
-            db.disconnect();
-        }
-    }
-
-
 }
