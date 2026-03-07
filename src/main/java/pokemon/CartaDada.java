@@ -16,27 +16,6 @@ public class CartaDada {
         return buscarCartasBD(texto, soloDisponibles, dueno, ordenarPorPuntos, tipoFiltro);
     }
 
-    public boolean guardarCarta(Carta carta) throws Exception {
-
-        System.out.println("Guardando carta: " + carta.nombre);
-
-        return insertarCartaBD(carta);
-    }
-
-    public boolean actualizarCarta(Carta carta) throws Exception {
-
-        System.out.println("Actualizando carta id: " + carta.idCarta);
-
-        return modificarCartaBD(carta);
-    }
-
-    public boolean eliminarCarta(int id) throws Exception {
-
-        System.out.println("Eliminando carta id: " + id);
-
-        return borrarCartaBD(id);
-    }
-
     public Carta obtenerCartaPorId(int id) throws Exception {
 
         System.out.println("Buscando carta id: " + id);
@@ -44,14 +23,6 @@ public class CartaDada {
         return buscarCartaPorIdBD(id);
     }
 
-    public boolean actualizarEstado(int id, String nuevoEstado) throws Exception {
-
-        System.out.println("Actualizando estado carta " + id + " -> " + nuevoEstado);
-
-        return actualizarEstadoBD(id, nuevoEstado);
-    }
-
-    // ===== MÉTODOS PRIVADOS (SQL REAL) =====
 
     private List<Carta> buscarCartasBD(String texto, boolean soloDisponibles, String dueno,
                                        boolean ordenarPorPuntos, String tipoFiltro) {
@@ -86,7 +57,7 @@ public class CartaDada {
 
             ResultSet rs = db.executeQuery(sql);
 
-            while (rs.next()) {
+            while (rs != null && rs.next()) {
 
                 Carta carta = new Carta(
                         rs.getInt("id_carta"),
@@ -116,104 +87,6 @@ public class CartaDada {
         return lista;
     }
 
-    private boolean insertarCartaBD(Carta carta) {
-
-        DatabaseManager db = new DatabaseManager();
-
-        try {
-
-            db.connect();
-
-            String sql = "INSERT INTO Carta (Dueno, Nombre, Tipo, Puntuacion, Estado, FechaAlta) VALUES (" +
-                    "'" + carta.dueno + "', " +
-                    "'" + carta.nombre + "', " +
-                    "'" + carta.tipo + "', " +
-                    carta.puntuacion + ", " +
-                    "'" + carta.estado + "', NOW())";
-
-            System.out.println("SQL INSERT: " + sql);
-
-            int resultado = db.executeUpdate(sql);
-
-            return resultado > 0;
-
-        } catch (Exception e) {
-
-            System.err.println("ERROR insertando carta");
-            e.printStackTrace();
-
-            return false;
-
-        } finally {
-
-            db.disconnect();
-        }
-    }
-
-    private boolean modificarCartaBD(Carta carta) {
-
-        DatabaseManager db = new DatabaseManager();
-
-        try {
-
-            db.connect();
-
-            String sql = "UPDATE Carta SET " +
-                    "Dueno='" + carta.dueno + "', " +
-                    "Nombre='" + carta.nombre + "', " +
-                    "Tipo='" + carta.tipo + "', " +
-                    "Puntuacion=" + carta.puntuacion + ", " +
-                    "Estado='" + carta.estado + "' " +
-                    "WHERE id_carta=" + carta.idCarta;
-
-            System.out.println("SQL UPDATE: " + sql);
-
-            int resultado = db.executeUpdate(sql);
-
-            return resultado > 0;
-
-        } catch (Exception e) {
-
-            System.err.println("ERROR modificando carta");
-            e.printStackTrace();
-
-            return false;
-
-        } finally {
-
-            db.disconnect();
-        }
-    }
-
-    private boolean borrarCartaBD(int id) {
-
-        DatabaseManager db = new DatabaseManager();
-
-        try {
-
-            db.connect();
-
-            String sql = "DELETE FROM Carta WHERE id_carta=" + id;
-
-            System.out.println("SQL DELETE: " + sql);
-
-            int resultado = db.executeUpdate(sql);
-
-            return resultado > 0;
-
-        } catch (Exception e) {
-
-            System.err.println("ERROR borrando carta");
-            e.printStackTrace();
-
-            return false;
-
-        } finally {
-
-            db.disconnect();
-        }
-    }
-
     private Carta buscarCartaPorIdBD(int id) {
 
         DatabaseManager db = new DatabaseManager();
@@ -228,7 +101,7 @@ public class CartaDada {
 
             ResultSet rs = db.executeQuery(sql);
 
-            if (rs.next()) {
+            if (rs != null && rs.next()) {
 
                 return new Carta(
                         rs.getInt("id_carta"),
@@ -252,34 +125,5 @@ public class CartaDada {
         }
 
         return null;
-    }
-
-    private boolean actualizarEstadoBD(int id, String nuevoEstado) {
-
-        DatabaseManager db = new DatabaseManager();
-
-        try {
-
-            db.connect();
-
-            String sql = "UPDATE Carta SET Estado='" + nuevoEstado + "' WHERE id_carta=" + id;
-
-            System.out.println("SQL UPDATE ESTADO: " + sql);
-
-            int resultado = db.executeUpdate(sql);
-
-            return resultado > 0;
-
-        } catch (Exception e) {
-
-            System.err.println("ERROR actualizando estado carta");
-            e.printStackTrace();
-
-            return false;
-
-        } finally {
-
-            db.disconnect();
-        }
     }
 }
