@@ -2,8 +2,12 @@ package main.java.pokemon;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class Solicitud {
+
+    private static final Logger logger = Logger.getLogger(Solicitud.class.getName());
 
     // Estados permitidos
     public enum EstadoS{
@@ -22,7 +26,7 @@ public class Solicitud {
     public EstadoS estado;
 
     // Constructor para crear una solicitud desde BD
-    public Solicitud(int idSolicitud, int idCarta1, String dueno1, int idCarta2, String dueno2, EstadoS estado, Date fechaSolicitud) {
+    public Solicitud(int idSolicitud, int idCarta1, String dueno1, int idCarta2, String dueno2, EstadoS estado, Date fechaSolicitud) throws Exception {
         this.idSolicitud = idSolicitud;
         this.idCarta1 = idCarta1;
         this.dueno1 = dueno1;
@@ -30,33 +34,35 @@ public class Solicitud {
         this.dueno2 = dueno2;
         this.estado = estado;
         this.fechaSolicitud = fechaSolicitud;
-        control = insertarsolicitud();
+        boolean control = insertarsolicitud();
         if(control){
             logger.info("Intercambio solicitado correctamente.");
         }
         else{
-            logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD", e);
+            logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD");
         }
     }
 
     // Método para aceptar una solicitud
-    public void aceptar(){
+    public void aceptar() throws Exception {
 
         if (this.estado == EstadoS.PENDIENTE){
             this.estado = EstadoS.ACEPTADO;
 
-            Carta carta1 = obtenerCartaPorId(this.idCarta1);
-            Carta carta2 = obtenerCartaPorId(this.idCarta2);
+            CartaDada cartaDada = new CartaDada();
+
+            Carta carta1 = cartaDada.obtenerCartaPorId(this.idCarta1);
+            Carta carta2 = cartaDada.obtenerCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
-                logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
+                logger.log(Level.SEVERE, "Error: alguna carta no existe");
                 return;
             }
 
             boolean control1 = carta1.actualizarDueno(this.dueno2);
             boolean control2 = carta2.actualizarDueno(this.dueno1);
 
-            boolean control3 = carta1.actualizarEstado(EstadoC.DISPONIBLE);
-            boolean control4 = carta2.actualizarEstado(EstadoC.DISPONIBLE);
+            boolean control3 = carta1.actualizarEstado(Carta.EstadoC.DISPONIBLE);
+            boolean control4 = carta2.actualizarEstado(Carta.EstadoC.DISPONIBLE);
 
             boolean control5 = this.modificarSolicitud();
 
@@ -64,68 +70,72 @@ public class Solicitud {
                 logger.info("Intercambio realizado correctamente.");
             }
             else{
-                logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD", e);
+                logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD");
             }
         }
         else {
-            logger.log(Level.SEVERE, "Error: la solicitud ya se ha resuelto", e);
+            logger.log(Level.SEVERE, "Error: la solicitud ya se ha resuelto");
             return;
         }
     }
 
     // Método para rechazar
-    public void rechazar(){
+    public void rechazar() throws Exception {
         if (this.estado == EstadoS.PENDIENTE){
             this.estado = EstadoS.RECHAZADO;
 
-            Carta carta1 = obtenerCartaPorId(this.idCarta1);
-            Carta carta2 = obtenerCartaPorId(this.idCarta2);
+            CartaDada cartaDada = new CartaDada();
+
+            Carta carta1 = cartaDada.obtenerCartaPorId(this.idCarta1);
+            Carta carta2 = cartaDada.obtenerCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
-                logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
+                logger.log(Level.SEVERE, "Error: alguna carta no existe");
                 return;
             }
 
-            boolean control1 = carta1.actualizarEstado(EstadoC.DISPONIBLE);
-            boolean control2 = carta2.actualizarEstado(EstadoC.DISPONIBLE);
+            boolean control1 = carta1.actualizarEstado(Carta.EstadoC.DISPONIBLE);
+            boolean control2 = carta2.actualizarEstado(Carta.EstadoC.DISPONIBLE);
             boolean control3 = this.modificarSolicitud();
 
             if(control1 && control2 && control3){
                 logger.info("Intercambio rechazado correctamente.");
             }
             else{
-                logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD", e);
+                logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD");
             }
         }
         else {
-            logger.log(Level.SEVERE, "Error: la solicitud ya se ha resuelto", e);
+            logger.log(Level.SEVERE, "Error: la solicitud ya se ha resuelto");
             return;
         }
     }
 
     // Método para cancelar
-    public void cancelar(){
+    public void cancelar() throws Exception {
         if (this.estado == EstadoS.PENDIENTE){
 
-            Carta carta1 = obtenerCartaPorId(this.idCarta1);
-            Carta carta2 = obtenerCartaPorId(this.idCarta2);
+            CartaDada cartaDada = new CartaDada();
+
+            Carta carta1 = cartaDada.obtenerCartaPorId(this.idCarta1);
+            Carta carta2 = cartaDada.obtenerCartaPorId(this.idCarta2);
             if (carta1 == null || carta2 == null) {
-                logger.log(Level.SEVERE, "Error: alguna carta no existe", e);
+                logger.log(Level.SEVERE, "Error: alguna carta no existe");
                 return;
             }
 
-            boolean control1 = carta1.actualizarEstado(EstadoC.DISPONIBLE);
-            boolean control2 = carta2.actualizarEstado(EstadoC.DISPONIBLE);
+            boolean control1 = carta1.actualizarEstado(Carta.EstadoC.DISPONIBLE);
+            boolean control2 = carta2.actualizarEstado(Carta.EstadoC.DISPONIBLE);
             boolean control3 = this.borrarSolicitud();
 
             if(control1 && control2 && control3){
                 logger.info("Intercambio cancelado correctamente.");
             }
             else{
-                logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD", e);
+                logger.log(Level.SEVERE, "Error: no se ha guardado correctamente en la BD");
             }
         }
         else {
-            logger.log(Level.SEVERE, "Error: la solicitud ya se ha resuelto", e);
+            logger.log(Level.SEVERE, "Error: la solicitud ya se ha resuelto");
             return;
         }
     }
@@ -143,7 +153,7 @@ public class Solicitud {
                     this.idCarta2 + "," +
                     "'" + this.dueno2 + "'," +
                     this.fechaSolicitud + ","  +
-                    "" + this.estado + "," +
+                    "'" + this.estado + "," +
                     ")";
 
             int resultado = db.executeUpdate(sql);
@@ -165,7 +175,7 @@ public class Solicitud {
                     "dueno1='" + this.dueno1 + "', " +
                     "idCarta2=" + this.idCarta2 + ", " +
                     "dueno2='" + this.dueno2 + "', " +
-                    "estado='" + this.estado + "', " +
+                    "estado='" + this.estado + "' " +
                     "WHERE idSolicitud=" + this.idSolicitud;
 
             int resultado = db.executeUpdate(sql);

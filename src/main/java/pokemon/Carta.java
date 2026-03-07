@@ -2,8 +2,11 @@ package main.java.pokemon;
 
 import java.sql.ResultSet;
 import java.util.Date;
+import java.util.logging.Logger;
 
 public class Carta {
+
+    private static final Logger logger = Logger.getLogger(Carta.class.getName());
 
     public enum EstadoC {
         DISPONIBLE,
@@ -49,7 +52,7 @@ public class Carta {
     // ===== MÉTODOS PÚBLICOS =====
 
     public boolean guardar() throws Exception {
-        logger.info("Guardando carta: "+ this.nombre.);
+        logger.info("Guardando carta: "+ this.nombre);
         return insertarCartaBD();
     }
 
@@ -65,7 +68,7 @@ public class Carta {
         return modificarCartaBD();
     }
 
-    public boolean actualizarNombre(String nuevoTipo) throws Exception {
+    public boolean actualizarTipo(String nuevoTipo) throws Exception {
         logger.info("Actualizando carta id: " + this.idCarta);
         this.tipo = nuevoTipo;
         return modificarCartaBD();

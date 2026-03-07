@@ -1,32 +1,37 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="main.java.pokemon.Carta" %>
+<%@ page import="main.java.pokemon.CartaDada" %>
 <%@ page import="java.util.List" %>
 
 <%-- Incluir al usuario logado como variable de sesión --%>
 <%
-    String usuario = (String) session.getAttribute("usuario"); //Si ya tenemos usuario en sesión, lo reutilizamos
+    String usuario = (String) session.getAttribute("usuario");
     String mensaje = (String) request.getParameter("mensaje");
 
-    if (usuario == null || usuario.isEmpty()) { //Si es la primera vez que accede, lo saca de los parámetros
+    if (usuario == null || usuario.isEmpty()) {
         usuario = request.getParameter("usuario");
         if (usuario == null) {
             usuario = "Anonimo";
         }
-        session.setAttribute("usuario", usuario);  // Guardamos el usuario en la sesión
+        session.setAttribute("usuario", usuario);
     }
     if (mensaje != null && !mensaje.isEmpty()) {
         if (mensaje.toLowerCase().contains("error")) {
             mensaje = "<div class='mensaje_error'>" + mensaje + "</div>";
         }
-        else { mensaje = "<div class='mensaje'>" + mensaje + "</div>"; }
+        else {
+            mensaje = "<div class='mensaje'>" + mensaje + "</div>";
+        }
     }
-    else { mensaje = ""; }
+    else {
+        mensaje = "";
+    }
 
     // Buscar las cartas de ese usuario
-    Carta nuevaCarta = new Carta();
+    CartaDada cartaDada = new CartaDada();
     List<Carta> listaCartas = null;
     try {
-        listaCartas = nuevaCarta.buscarCartas("", true, usuario, false, "");
+        listaCartas = cartaDada.buscarCartas("", true, usuario, false, "");
     }
     catch (Exception e) {
         mensaje = mensaje + "<div class='mensaje_error'>Error de conexión a base de datos.</div>";
