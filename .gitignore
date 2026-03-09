@@ -32,3 +32,9 @@ bin/
 
 .idea/
 *.iml
+
+### Build y artefactos locales ###
+target_classes/
+tomcat_local/
+*.class
+*.log
