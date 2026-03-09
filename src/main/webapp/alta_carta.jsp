@@ -1,6 +1,71 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="main.java.pokemon.Carta" %>
 <%@ include file="WEB-INF/includes/sessionUsuario.jsp" %>
 <%@ include file="WEB-INF/includes/atributosComunes.jsp" %>
+<%
+    String mensaje = "";
+
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String nombre = request.getParameter("nombre");
+        String puntos = request.getParameter("puntos");
+        String tipo = request.getParameter("tipo");
+        String estado = request.getParameter("estado");
+
+        if (nombre == null) {
+            nombre = "";
+        }
+        if (puntos == null) {
+            puntos = "";
+        }
+        if (tipo == null || tipo.isEmpty()) {
+            tipo = "Planta";
+        }
+        if (estado == null || estado.isEmpty()) {
+            estado = "DISPONIBLE";
+        }
+
+        nombre = nombre.trim();
+        puntos = puntos.trim();
+
+        int puntosValor = -1;
+        try {
+            puntosValor = Integer.parseInt(puntos);
+        }
+        catch (NumberFormatException e) {
+            puntosValor = -1;
+        }
+
+        if (nombre.isEmpty()) {
+            mensaje = "<div class='mensaje_error'>Error: el nombre es obligatorio.</div>";
+        }
+        else if (puntosValor < 0) {
+            mensaje = "<div class='mensaje_error'>Error: la puntuacion debe ser un numero valido.</div>";
+        }
+        else {
+            try {
+                Carta.EstadoC estadoCarta = Carta.EstadoC.valueOf(estado);
+                Carta carta = new Carta(usuario, nombre, tipo, puntosValor, estadoCarta, new java.util.Date());
+                boolean guardada = carta.guardar();
+
+                if (guardada) {
+                    String destino = "miColeccion.jsp?mensaje="
+                            + java.net.URLEncoder.encode("Carta creada correctamente", "UTF-8");
+                    response.sendRedirect(destino);
+                    return;
+                }
+                else {
+                    mensaje = "<div class='mensaje_error'>Error: no se pudo crear la carta.</div>";
+                }
+            }
+            catch (IllegalArgumentException e) {
+                mensaje = "<div class='mensaje_error'>Error: estado de carta invalido.</div>";
+            }
+            catch (Exception e) {
+                mensaje = "<div class='mensaje_error'>Error al guardar la carta en base de datos.</div>";
+            }
+        }
+    }
+%>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -24,6 +89,11 @@
         function ir_SolicitudesRecibidas() {
             window.location.href = "solicitudesRecibidas.jsp";
             return true;
+        }
+
+        function cancelar_Alta() {
+            window.location.href = "miColeccion.jsp";
+            return false;
         }
     </script>
 </head>
@@ -49,6 +119,7 @@
 
     <main>
         <div class="content-container">
+            <%= mensaje %>
             <form id="alta-carta-form" method="post" action="alta_carta.jsp">
                 <h2>Nueva Carta</h2>
                 <div>
@@ -77,7 +148,7 @@
                     <select id="estado" name="estado" required>
                         <option value="DISPONIBLE">Disponible</option>
                         <option value="RESERVADA">Reservada</option>
-                        <option value="NO_INTERCAMBIABLE">No intercambiable</option>
+                        <option value="NO_INTERCAMBIA">No intercambiable</option>
                     </select>
                 </div>
                 <div>
@@ -86,7 +157,7 @@
                 </div>
                 <div>
                     <button class="aceptar" type="submit">Aceptar</button>
-                    <button class="cancelar" type="button" class="navegacion" onclick="window.history.back();">Cancelar</button>
+                    <button class="cancelar" type="button" class="navegacion" onclick="cancelar_Alta();">Cancelar</button>
                 </div>
             </form>
         </div>

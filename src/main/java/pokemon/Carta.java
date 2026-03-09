@@ -11,7 +11,7 @@ public class Carta {
     public enum EstadoC {
         DISPONIBLE,
         RESERVADA,
-        NO_INTERCAMBIABLE
+        NO_INTERCAMBIA
     }
 
     public int idCarta;

@@ -1,31 +1,72 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="main.java.pokemon.Carta" %>
 <%@ page import="main.java.pokemon.CartaDada" %>
+<%@ page import="main.java.pokemon.DatabaseManager" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.sql.PreparedStatement" %>
 <%@ include file="WEB-INF/includes/sessionUsuario.jsp" %>
 
 <%
-    String mensaje = request.getParameter("mensaje");
-
-    if (mensaje != null && !mensaje.isEmpty()) {
-        if (mensaje.toLowerCase().contains("error")) {
-            mensaje = "<div class='mensaje_error'>" + mensaje + "</div>";
-        }
-        else {
-            mensaje = "<div class='mensaje'>" + mensaje + "</div>";
-        }
+    String mensajeTexto = request.getParameter("mensaje");
+    String mensajeClase = "mensaje";
+    if (mensajeTexto == null) {
+        mensajeTexto = "";
     }
-    else {
-        mensaje = "";
+    if (mensajeTexto.toLowerCase().contains("error")) {
+        mensajeClase = "mensaje_error";
+    }
+
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String action = request.getParameter("action");
+        if ("delete".equalsIgnoreCase(action)) {
+            String idCartaParam = request.getParameter("idCarta");
+            int idCarta = -1;
+            try {
+                idCarta = Integer.parseInt(idCartaParam);
+            } catch (NumberFormatException e) {
+                idCarta = -1;
+            }
+
+            if (idCarta <= 0) {
+                mensajeTexto = "Error: carta no valida.";
+                mensajeClase = "mensaje_error";
+            } else {
+                DatabaseManager db = new DatabaseManager();
+                try {
+                    db.connect();
+                    try (PreparedStatement ps = db.getConnection().prepareStatement(
+                            "DELETE FROM Carta WHERE id_carta=? AND Dueno=?")) {
+                        ps.setInt(1, idCarta);
+                        ps.setString(2, usuario);
+                        int borradas = ps.executeUpdate();
+                        if (borradas > 0) {
+                            String destino = "miColeccion.jsp?mensaje="
+                                    + java.net.URLEncoder.encode("Carta borrada correctamente", "UTF-8");
+                            response.sendRedirect(destino);
+                            return;
+                        }
+                        mensajeTexto = "Error: no se pudo borrar la carta.";
+                        mensajeClase = "mensaje_error";
+                    }
+                } catch (Exception e) {
+                    mensajeTexto = "Error: fallo al borrar la carta en base de datos.";
+                    mensajeClase = "mensaje_error";
+                } finally {
+                    db.disconnect();
+                }
+            }
+        }
     }
 
     CartaDada cartaDada = new CartaDada();
     List<Carta> listaCartas = null;
     try {
-        listaCartas = cartaDada.buscarCartas("", true, usuario, false, "");
-    }
-    catch (Exception e) {
-        mensaje = mensaje + "<div class='mensaje_error'>Error de conexion a base de datos.</div>";
+        listaCartas = cartaDada.buscarCartas("", false, usuario, false, "");
+    } catch (Exception e) {
+        if (mensajeTexto.isEmpty()) {
+            mensajeTexto = "Error: fallo de conexion con la base de datos.";
+            mensajeClase = "mensaje_error";
+        }
     }
 %>
 
@@ -56,18 +97,21 @@
         function Modificar_Carta() {
             const id = document.querySelector('input[name="seleccionarCarta"]:checked');
             if (id) {
-                window.location.href = "modificarCarta.jsp?id=" + id.value;
+                window.location.href = "modificarCarta.jsp?id=" + encodeURIComponent(id.value);
             }
             return true;
         }
 
         function Borrar_Carta() {
             const id = document.querySelector('input[name="seleccionarCarta"]:checked');
-            if (confirm("Estas seguro de querer eliminar esta carta para siempre?")) {
-                if (id) {
-                    window.location.href = "borrarCarta.jsp?id=" + id.value;
-                }
+            if (!id) {
+                return false;
             }
+            if (confirm("Estas seguro de querer eliminar esta carta para siempre?")) {
+                document.getElementById("idCartaBorrar").value = id.value;
+                document.getElementById("formBorrarCarta").submit();
+            }
+            return false;
         }
 
         function ir_SolicitudesEnviadas() {
@@ -95,13 +139,15 @@
     </nav>
     <div class="user-info">
         <div class="user-name" id="user-name"><%= usuario %></div>
-        <a href="index.jsp" class="logout-link"> <i class="fas fa-sign-out-alt"></i>
-        </a>
+        <a href="index.jsp" class="logout-link"><i class="fas fa-sign-out-alt"></i></a>
     </div>
 </header>
 
 <main>
-    <%= mensaje %>
+    <% if (!mensajeTexto.isEmpty()) { %>
+    <div class="<%= mensajeClase %>"><%= mensajeTexto %></div>
+    <% } %>
+
     <div class="content-container">
         <h2>Mi Coleccion</h2>
         <p>En esta seccion veras todas las cartas de tu coleccion.</p>
@@ -110,14 +156,13 @@
             <button id="modificarCarta" disabled onclick="Modificar_Carta();">Modificar Carta</button>
             <button id="borrarCarta" disabled onclick="Borrar_Carta();">Borrar Carta</button>
         </div>
+
+        <form id="formBorrarCarta" method="post" action="miColeccion.jsp" style="display:none;">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" id="idCartaBorrar" name="idCarta" value="">
+        </form>
+
         <div class="table-container">
-            <% if (listaCartas == null || listaCartas.isEmpty()) { %>
-            <table>
-                <thead>
-                <tr><th>Todavia no tienes ninguna carta en tu coleccion.</th></tr>
-                </thead>
-            </table>
-            <% } else { %>
             <table>
                 <thead>
                 <tr>
@@ -130,6 +175,11 @@
                 </tr>
                 </thead>
                 <tbody>
+                <% if (listaCartas == null || listaCartas.isEmpty()) { %>
+                <tr>
+                    <td colspan="6">Todavia no tienes ninguna carta en tu coleccion.</td>
+                </tr>
+                <% } else { %>
                 <% for (Carta carta : listaCartas) { %>
                 <tr>
                     <td><input type="radio" name="seleccionarCarta" onclick="habilitarBotones();" value="<%= carta.idCarta %>"></td>
@@ -144,10 +194,9 @@
                     <td><%= carta.estado %></td>
                 </tr>
                 <% } %>
-
+                <% } %>
                 </tbody>
             </table>
-            <% } %>
         </div>
     </div>
 </main>

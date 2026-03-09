@@ -8,25 +8,25 @@
     }
 
     if ("POST".equalsIgnoreCase(request.getMethod())) {
-        String usuario = request.getParameter("usuario");
+        String loginUsuario = request.getParameter("usuario");
         String password = request.getParameter("password");
 
-        if (usuario == null) {
-            usuario = "";
+        if (loginUsuario == null) {
+            loginUsuario = "";
         }
         if (password == null) {
             password = "";
         }
 
-        usuario = usuario.trim();
+        loginUsuario = loginUsuario.trim();
         password = password.trim();
 
-        if (usuario.isEmpty() || password.isEmpty()) {
+        if (loginUsuario.isEmpty() || password.isEmpty()) {
             mensaje = "Por favor, completa usuario y contrasena.";
         }
         else {
-            session.setAttribute("usuario", usuario);
-            String destino = "miColeccion.jsp?usuario=" + java.net.URLEncoder.encode(usuario, "UTF-8");
+            session.setAttribute("usuario", loginUsuario);
+            String destino = "miColeccion.jsp?usuario=" + java.net.URLEncoder.encode(loginUsuario, "UTF-8");
             response.sendRedirect(destino);
             return;
         }
@@ -42,24 +42,21 @@
     <link rel="stylesheet" href="styles.css">
     <script>
         function Validar_Usuario(event) {
-            event.preventDefault();
-
             const usuario = document.getElementById("usuario").value.trim();
             const password = document.getElementById("password").value.trim();
 
             if (usuario === "" || password === "") {
+                event.preventDefault();
                 alert("Por favor, completa ambos campos.");
                 return false;
             }
-
-            window.location.href = "miColeccion.jsp?mensaje=&usuario=" + encodeURIComponent(usuario);
             return true;
         }
     </script>
 </head>
 <body>
     <div class="login-container">
-        <form class="login-form" method="post" action="index.jsp" onsubmit="Validar_Usuario(event);">
+        <form class="login-form" method="post" action="index.jsp" onsubmit="return Validar_Usuario(event);">
             <h2>Inicio de Sesion</h2>
 
             <% if (!mensaje.isEmpty()) { %>

@@ -146,15 +146,13 @@ public class Solicitud {
         db.connect();
 
         try {
-            String sql = "INSERT INTO solicitudes (idSolicitud, idCarta1, dueno1, idCarta2, dueno2, fechaSolicitud, estado) VALUES (" +
-                    this.idSolicitud + "," +
+            String sql = "INSERT INTO Solicitud (id_carta1, Dueno1, id_carta2, Dueno2, Estado, FechaSolicitud) VALUES (" +
                     this.idCarta1 + "," +
                     "'" + this.dueno1 + "'," +
                     this.idCarta2 + "," +
                     "'" + this.dueno2 + "'," +
-                    this.fechaSolicitud + ","  +
-                    "'" + this.estado + "," +
-                    ")";
+                    "'" + this.estado + "'," +
+                    "CURDATE())";
 
             int resultado = db.executeUpdate(sql);
             return resultado > 0;
@@ -170,13 +168,13 @@ public class Solicitud {
         db.connect();
 
         try {
-            String sql = "UPDATE solicitudes SET " +
-                    "idCarta1=" + this.idCarta1 + ", " +
-                    "dueno1='" + this.dueno1 + "', " +
-                    "idCarta2=" + this.idCarta2 + ", " +
-                    "dueno2='" + this.dueno2 + "', " +
-                    "estado='" + this.estado + "' " +
-                    "WHERE idSolicitud=" + this.idSolicitud;
+            String sql = "UPDATE Solicitud SET " +
+                    "id_carta1=" + this.idCarta1 + ", " +
+                    "Dueno1='" + this.dueno1 + "', " +
+                    "id_carta2=" + this.idCarta2 + ", " +
+                    "Dueno2='" + this.dueno2 + "', " +
+                    "Estado='" + this.estado + "' " +
+                    "WHERE id_solicitud=" + this.idSolicitud;
 
             int resultado = db.executeUpdate(sql);
             return resultado > 0;
@@ -192,7 +190,7 @@ public class Solicitud {
         db.connect();
 
         try {
-            String sql = "DELETE FROM solicitudes WHERE idSolicitud=" + this.idSolicitud;
+            String sql = "DELETE FROM Solicitud WHERE id_solicitud=" + this.idSolicitud;
 
             int resultado = db.executeUpdate(sql);
             return resultado > 0;
