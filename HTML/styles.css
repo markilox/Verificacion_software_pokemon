@@ -1,0 +1,463 @@
+
+/* Estilos generales */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f7;
+}
+
+/* Contenedor principal del contenido */
+.content-container {
+    max-width: 900px;  /* Define un ancho máximo para que el contenido no sea demasiado ancho */
+    margin: 40px auto; /* Centra el contenido y deja espacio alrededor */
+    padding: 24px;
+    background: white; /* Fondo blanco limpio */
+    border-radius: 12px; /* Bordes suaves */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Sombra sutil tipo Apple */
+}
+
+/* Títulos dentro del contenido */
+.content-container h1 {
+    color: #1d1d1f;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+/* Texto general */
+.content-container p {
+    color: #333;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Separación entre secciones */
+.section {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e5ea;
+}
+
+/* Estilo base para todos los botones */
+button {
+    font-size: 16px;
+    font-weight: 500;
+    background-color: #0071e3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+button:hover {
+    background-color: #205baf;
+}
+
+.aceptar {
+    width: 40%;
+    padding: 10px 15px;
+    background-color: #0071e3; /* Azul */
+    border-radius: 4px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 20px;
+}
+.cancelar {
+    width: 40%;
+    padding: 10px 15px;
+    background-color: #e5e5ea; /* Gris suave */
+    color: #333;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.aceptar:hover {
+    background-color: #205baf;
+}
+
+.cancelar:hover {
+    background-color: #d2d2d7;
+}
+
+
+/* Adaptable a pantallas pequeñas */
+@media (max-width: 768px) {
+    .content-container {
+        max-width: 90%;
+        padding: 16px;
+    }
+}
+
+/* ----------- TABLAS ----------- */
+
+/* Contenedor de la tabla */
+.table-container {
+    max-width: 800px;
+    margin: auto;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos de la tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+}
+
+/* Estilos para los encabezados */
+th {
+    background-color: #f5f5f7;
+    padding: 14px;
+    font-weight: 600;
+    text-align: left;
+    color: #1d1d1f;
+    border-bottom: 2px solid #d2d2d7;
+}
+
+/* Estilos para las celdas */
+td {
+    padding: 14px;
+    color: #333;
+    border-bottom: 1px solid #e5e5ea;
+}
+
+/* Resaltar filas al pasar el mouse */
+tr:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transition: background 0.3s ease-in-out;
+}
+
+/* Última fila sin borde inferior */
+tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* ----------- CABECERA ----------- */
+/* Cabecera */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 40px;
+    background: white;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor izquierdo: Logo y título */
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+/* Estilo del logo */
+.logo {
+    height: 40px;
+    margin-right: 12px;
+}
+
+/* Título de la web */
+.header h1{
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+/* Nombre de usuario (alineado a la derecha) */
+.header .user-name {
+    font-size: 14px;
+    color: #555;
+}
+
+/* Información del usuario */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Estilos para el icono de cerrar sesión */
+.logout-link {
+    font-size: 18px;
+    color: #0071e3;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+}
+
+/* Cambio de color al pasar el cursor */
+.logout-link:hover {
+    color: #005bb5;
+}
+
+
+/* Menú de navegación */
+.menu {
+    display: flex;
+    gap: 20px;
+}
+
+/* Estilo de los enlaces del menú */
+.menu a {
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+/* Estado hover */
+.menu a:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Estado activo */
+.menu a.active {
+    background: #0071e3;
+    color: white;
+}
+
+
+/* ----------- Página de Login ----------- */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ecf0f1;
+}
+
+.login-form {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-form h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: #2c3e50;
+}
+
+.login-form label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    color: #34495e;
+}
+
+.login-form input {
+    width: 95%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.login-form input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.login-form button {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: #0071e3; /* Azul */
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* ----------- Página "Mi Colección" ----------- */
+
+/* Estilo para los botones */
+.action-buttons {
+    text-align: center; /* Centrar los botones */
+    margin: 20px 0;
+}
+
+.action-buttons button {
+    font-size: 16px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.action-buttons button:disabled {
+    background-color: #d2d2d7;
+    color: #a1a1a6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Paginación */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.pagination button {
+    background-color: white;
+    color: #0071e3;
+    border: 1px solid #0071e3;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+.pagination button:hover {
+    background-color: #0071e3;
+    color: white;
+}
+
+.pagination span {
+    font-size: 1rem;
+    margin: 0 10px;
+}
+
+/* ----------- Formularios ----------- */
+
+.content-container h2 {
+    margin-bottom: 20px;
+    text-align: left !important;
+    color: #2c3e50;
+}
+
+.content-container label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: #34495e;
+}
+
+
+.content-container select {
+    width: 63%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.content-container input {
+    width: 60%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+.content-container input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+/* Estilo para los inputs inhabilitados */
+.content-container input[readonly] {
+    background-color: #e0e0e0;
+    color: #555;
+    cursor: not-allowed;
+}
+
+/* ----------- páginas solicitud intercambio ----------- */
+
+.adyacente {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    padding: 2px;
+}
+
+.adyacente label {
+    display: block;
+    font-size: 0.9rem;
+    padding: 10px;
+    margin-bottom: 5px;
+    color: #34495e;
+}
+
+.adyacente input {
+  padding: 10px;
+  width: 60%;
+  border-radius: 5px 0px 0px 5px;
+  border: none;
+}
+
+.adyacente button {
+  background-color: #0071e3; /* Azul */
+  color: white;
+  border: none;
+  border-radius: 0px 5px 5px 0px;
+  width: 40px;
+  height: 38px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ventana modal para seleccionar carta */
+
+.ventana_modal {
+	display: none;
+        position: fixed;
+        z-index: 1;
+        left: 300px;
+        top: 100px;
+        width: 60%;
+        height: 80%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+}
+
+.modal-content {
+        background-color: white;
+        padding: 20px;
+        border-style: solid;
+        border-color: #dddddd;
+        border-radius: 5px;
+        width: 90%;
+	margin-bottom: 20px;
+}
+
+.modal-content input, .modal-content select {
+	width: 50%;
+	padding: 10px;
+	margin-bottom: 15px;
+	border: 1px solid #bdc3c7;
+	border-radius: 4px;
+	font-size: 1rem;
+}
+.modal-content button {
+	padding: 10px 15px;
+	background-color: #0071e3;
+	border-radius: 4px;
+	color: white;
+	font-size: 1rem;
+	cursor: pointer;
+}
+
+.close {
+        color: red;
+        float: right;
+        font-size: 20px;
+        cursor: pointer;
+}

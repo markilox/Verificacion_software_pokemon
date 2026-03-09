@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitudes Recibidas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+	let usuario = "";
+	//Mostrar usuario en cabecera
+	document.addEventListener('DOMContentLoaded', function () {
+    		const urlParams = new URLSearchParams(window.location.search);
+   		usuario = urlParams.get('usuario');
+    		document.getElementById('user-name').textContent = usuario;
+	});
+
+        function habilitarBotones() {
+            const radioButtons = document.querySelectorAll('input[name="seleccionarSolicitud"]');
+            const aceptBtn = document.getElementById("aceptarSolicitud");
+            const rechazarBtn = document.getElementById("rechazarSolicitud");
+            const isAnySelected = Array.from(radioButtons).some(radio => radio.checked);
+ 
+            aceptBtn.disabled = !isAnySelected;
+            rechazarBtn.disabled = !isAnySelected;
+        }
+
+	function aceptar_Solicitud() {
+	    // Mostrar el mensaje de confirmación
+            if (confirm("¿Estás seguro/a de querer aceptar esta solicitud?")) {
+    	        // Si el usuario confirma (responde sí), llamar a Aceptar_Solicitud pasando el id de la solicitud
+             
+    	     }
+	}
+	function rechazar_Solicitud() {
+	    // Mostrar el mensaje de confirmación
+            if (confirm("¿Estás seguro/a de querer rechazar esta solicitud?")) {
+    	        // Si el usuario confirma (responde sí), llamar a Rechazar_Solicitud pasando el id de la solicitud
+             
+    	     }
+	}
+
+	function ir_miColeccion() {
+	    window.location.href = `Mi_coleccion.html?usuario=${encodeURIComponent(usuario)}`;
+	    return true;
+	}
+	function ir_SolicitudesEnviadas() {
+	    window.location.href = `Solicitudes_Enviadas.html?usuario=${encodeURIComponent(usuario)}`;
+	    return true;
+	}
+
+    </script>
+</head>
+<body>
+    <header class="header">
+    	<div class="header-left">
+        	<img src="logo.png" alt="Logo" class="logo">
+        	<h1>Pikachu Forever</h1>
+    	</div>
+
+    	<nav class="menu">
+       	 	<a href="#" onclick="ir_miColeccion(); return false;">Mi Colección</a>
+        	<a class="active" href="#">Solicitudes Recibidas</a>
+        	<a href="#" onclick="ir_SolicitudesEnviadas(); return false;">Solicitudes Enviadas</a>
+    	</nav>
+    	<div class="user-info">
+       	 	<div class="user-name" id="user-name"></div> 
+        	<a href="index.html" class="logout-link"> <i class="fas fa-sign-out-alt"></i>
+        	</a>
+    	</div>
+
+    </header>
+    <main><div class="content-container">
+	<h2>Solicitudes Recibidas</h2>
+	<p>En esta sección verás todas las solicitudes de intercambio que hayas recibido a otros usuarios. Para cada solicitud podrás ver: el nombre de la carta solicitada de tu colección, la carta que te proponen a cambio, el usuario que te propone el cambio, el estado de la solicitud y la fecha en la que te solicitaron el intercambio. Puedes aceptar solicitudes o borrar aquellas que ya hayan sido contestadas.</p>
+        <div class="action-buttons">
+            <button id="aceptarSolicitud" disabled onclick="aceptar_Solicitud();">Aceptar Solicitud</button>
+            <button id="rechazarSolicitud" disabled onclick="rechazar_Solicitud();">Rechazar Solicitud</button>
+        </div>
+	<div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Seleccionar</th>
+                    <th>Carta Solicitada</th>
+                    <th>Carta a cambio</th>
+                    <th>Dueño</th>
+                    <th>Estado</th>
+                    <th>Fecha Solicitud</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="radio" name="seleccionarSolicitud" onclick="habilitarBotones()"></td>
+                    <td>Pikachu</td>
+                    <td>Bulbasaur</td>
+                    <td>user2</td>
+                    <td>Pendiente</td>
+                    <td>2025-02-01</td>
+                </tr>
+		<tr>
+                    <td><input type="radio" name="seleccionarSolicitud" onclick="habilitarBotones()"></td>
+                    <td>Charizar</td>
+                    <td>Bulbasaur</td>
+                    <td>user5</td>
+                    <td>Aceptada</td>
+                    <td>2025-02-10</td>
+                </tr>
+
+                <!-- Repetir más filas de ejemplo -->
+            </tbody>
+        </table></div>
+
+        <div class="pagination">
+            <button>&lt; Anterior</button>
+            <span>Página 1 de 10</span>
+            <button>Siguiente &gt;</button>
+        </div>
+    </div></main>
+</body>
+</html>
