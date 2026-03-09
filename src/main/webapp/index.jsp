@@ -1,9 +1,35 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="WEB-INF/includes/sessionUsuario.jsp" %>
 
 <%
-    // Si ya tenemos usuario en sesión, lo reutilizamos
-    if (session.getAttribute("usuario") != null) {
-        session.setAttribute("usuario", "");
+    String mensaje = request.getParameter("mensaje");
+    if (mensaje == null) {
+        mensaje = "";
+    }
+
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String usuario = request.getParameter("usuario");
+        String password = request.getParameter("password");
+
+        if (usuario == null) {
+            usuario = "";
+        }
+        if (password == null) {
+            password = "";
+        }
+
+        usuario = usuario.trim();
+        password = password.trim();
+
+        if (usuario.isEmpty() || password.isEmpty()) {
+            mensaje = "Por favor, completa usuario y contrasena.";
+        }
+        else {
+            session.setAttribute("usuario", usuario);
+            String destino = "miColeccion.jsp?usuario=" + java.net.URLEncoder.encode(usuario, "UTF-8");
+            response.sendRedirect(destino);
+            return;
+        }
     }
 %>
 
@@ -14,57 +40,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="styles.css">
-
     <script>
         function Validar_Usuario(event) {
-
-            // Prevenir el comportamiento predeterminado del formulario
             event.preventDefault();
 
-            // Obtener valores de los campos
             const usuario = document.getElementById("usuario").value.trim();
             const password = document.getElementById("password").value.trim();
 
-            // Validar que ambos campos estén completados
             if (usuario === "" || password === "") {
                 alert("Por favor, completa ambos campos.");
                 return false;
             }
 
-            // Redirigir a la página "Mi colección" pasando el usuario en la URL
-            window.location.href = "miColeccion.jsp?mensaje=&usuario=" + usuario;
+            window.location.href = "miColeccion.jsp?mensaje=&usuario=" + encodeURIComponent(usuario);
             return true;
         }
     </script>
 </head>
-
 <body>
-<div class="login-container">
-    <form class="login-form" onsubmit="Validar_Usuario(event);">
-        <h2>Inicio de Sesión</h2>
+    <div class="login-container">
+        <form class="login-form" method="post" action="index.jsp" onsubmit="Validar_Usuario(event);">
+            <h2>Inicio de Sesion</h2>
 
-        <label for="usuario">Usuario:</label>
-        <input
-                type="text"
-                id="usuario"
-                name="usuario"
-                maxlength="8"
-                placeholder="Máx. 8 caracteres"
-                required
-        >
+            <% if (!mensaje.isEmpty()) { %>
+            <div style="color: red; margin-bottom: 10px; text-align: center;">
+                <%= mensaje %>
+            </div>
+            <% } %>
 
-        <label for="password">Contraseña:</label>
-        <input
-                type="password"
-                id="password"
-                name="password"
-                maxlength="8"
-                placeholder="Máx. 8 caracteres"
-                required
-        >
+            <label for="usuario">Usuario:</label>
+            <input type="text" id="usuario" name="usuario" maxlength="8" placeholder="Max. 8 caracteres" required>
 
-        <button type="submit">Aceptar</button>
-    </form>
-</div>
+            <label for="password">Contrasena:</label>
+            <input type="password" id="password" name="password" maxlength="8" placeholder="Max. 8 caracteres" required>
+
+            <button type="submit">Aceptar</button>
+        </form>
+    </div>
 </body>
 </html>
