@@ -165,7 +165,8 @@
 
         try (PreparedStatement ps = dbListas.getConnection().prepareStatement(
                 "SELECT id_carta, Nombre, Dueno, Estado FROM Carta "
-                        + "WHERE Dueno<>? AND Estado='DISPONIBLE' ORDER BY Nombre ASC")) {
+                        + "WHERE Dueno<>? "
+                        + "ORDER BY CASE WHEN Estado='DISPONIBLE' THEN 0 ELSE 1 END, Nombre ASC")) {
             ps.setString(1, usuario);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -181,7 +182,8 @@
 
         try (PreparedStatement ps = dbListas.getConnection().prepareStatement(
                 "SELECT id_carta, Nombre, Dueno, Estado FROM Carta "
-                        + "WHERE Dueno=? AND Estado='DISPONIBLE' ORDER BY Nombre ASC")) {
+                        + "WHERE Dueno=? "
+                        + "ORDER BY CASE WHEN Estado='DISPONIBLE' THEN 0 ELSE 1 END, Nombre ASC")) {
             ps.setString(1, usuario);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -328,25 +330,32 @@
                             <tr>
                                 <th>Nombre</th>
                                 <th>Dueno</th>
+                                <th>Estado</th>
                                 <th>Seleccionar</th>
                             </tr>
                             </thead>
                             <tbody>
                             <% if (cartasOtros.isEmpty()) { %>
-                            <tr><td colspan="3">No hay cartas disponibles de otros usuarios.</td></tr>
+                            <tr><td colspan="4">No hay cartas de otros usuarios.</td></tr>
                             <% } else { %>
                             <% for (String[] fila : cartasOtros) {
                                 String nombreJs = fila[1].replace("\\", "\\\\").replace("'", "\\'");
                                 String duenoJs = fila[2].replace("\\", "\\\\").replace("'", "\\'");
+                                boolean seleccionable = "DISPONIBLE".equals(fila[3]);
                             %>
                             <tr>
                                 <td><%= fila[1] %></td>
                                 <td><%= fila[2] %></td>
+                                <td><%= fila[3] %></td>
                                 <td>
+                                    <% if (seleccionable) { %>
                                     <button type="button"
                                             onclick="seleccionarCarta1('<%= fila[0] %>', '<%= nombreJs %>', '<%= duenoJs %>', event)">
                                         Seleccionar
                                     </button>
+                                    <% } else { %>
+                                    <button type="button" disabled>No disponible</button>
+                                    <% } %>
                                 </td>
                             </tr>
                             <% } %>
@@ -381,19 +390,24 @@
                             </thead>
                             <tbody>
                             <% if (misCartas.isEmpty()) { %>
-                            <tr><td colspan="3">No tienes cartas disponibles para ofrecer.</td></tr>
+                            <tr><td colspan="3">No tienes cartas en tu coleccion.</td></tr>
                             <% } else { %>
                             <% for (String[] fila : misCartas) {
                                 String nombreJs = fila[1].replace("\\", "\\\\").replace("'", "\\'");
+                                boolean seleccionable = "DISPONIBLE".equals(fila[3]);
                             %>
                             <tr>
                                 <td><%= fila[1] %></td>
                                 <td><%= fila[3] %></td>
                                 <td>
+                                    <% if (seleccionable) { %>
                                     <button type="button"
                                             onclick="seleccionarCarta2('<%= fila[0] %>', '<%= nombreJs %>', event)">
                                         Seleccionar
                                     </button>
+                                    <% } else { %>
+                                    <button type="button" disabled>No disponible</button>
+                                    <% } %>
                                 </td>
                             </tr>
                             <% } %>
