@@ -1,9 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="main.java.pokemon.Carta" %>
 <%@ page import="main.java.pokemon.CartaDada" %>
-<%@ page import="main.java.pokemon.DatabaseManager" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.sql.PreparedStatement" %>
 <%@ include file="WEB-INF/includes/sessionUsuario.jsp" %>
 
 <%
@@ -31,28 +29,25 @@
                 mensajeTexto = "Error: carta no valida.";
                 mensajeClase = "mensaje_error";
             } else {
-                DatabaseManager db = new DatabaseManager();
                 try {
-                    db.connect();
-                    try (PreparedStatement ps = db.getConnection().prepareStatement(
-                            "DELETE FROM Carta WHERE id_carta=? AND Dueno=?")) {
-                        ps.setInt(1, idCarta);
-                        ps.setString(2, usuario);
-                        int borradas = ps.executeUpdate();
-                        if (borradas > 0) {
-                            String destino = "miColeccion.jsp?mensaje="
-                                    + java.net.URLEncoder.encode("Carta borrada correctamente", "UTF-8");
-                            response.sendRedirect(destino);
-                            return;
-                        }
+                    CartaDada cartaDadaBorrado = new CartaDada();
+                    Carta cartaABorrar = cartaDadaBorrado.obtenerCartaPorId(idCarta);
+
+                    if (cartaABorrar == null || !usuario.equals(cartaABorrar.dueno)) {
+                        mensajeTexto = "Error: no se pudo borrar la carta.";
+                        mensajeClase = "mensaje_error";
+                    } else if (cartaABorrar.eliminar()) {
+                        String destino = "miColeccion.jsp?mensaje="
+                                + java.net.URLEncoder.encode("Carta borrada correctamente", "UTF-8");
+                        response.sendRedirect(destino);
+                        return;
+                    } else {
                         mensajeTexto = "Error: no se pudo borrar la carta.";
                         mensajeClase = "mensaje_error";
                     }
                 } catch (Exception e) {
                     mensajeTexto = "Error: fallo al borrar la carta en base de datos.";
                     mensajeClase = "mensaje_error";
-                } finally {
-                    db.disconnect();
                 }
             }
         }

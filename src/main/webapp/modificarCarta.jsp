@@ -1,7 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="main.java.pokemon.DatabaseManager" %>
-<%@ page import="java.sql.PreparedStatement" %>
-<%@ page import="java.sql.ResultSet" %>
+<%@ page import="main.java.pokemon.Carta" %>
+<%@ page import="main.java.pokemon.CartaDada" %>
 <%@ include file="WEB-INF/includes/sessionUsuario.jsp" %>
 <%@ include file="WEB-INF/includes/atributosComunes.jsp" %>
 <%
@@ -22,6 +21,7 @@
     String estado = "DISPONIBLE";
     String fechaAlta = "";
     boolean cartaEncontrada = false;
+    CartaDada cartaDada = new CartaDada();
 
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         nombre = request.getParameter("nombre");
@@ -69,57 +69,45 @@
             mensajeTexto = "Error: estado no valido.";
             mensajeClase = "mensaje_error";
         } else {
-            DatabaseManager db = new DatabaseManager();
             try {
-                db.connect();
-                try (PreparedStatement ps = db.getConnection().prepareStatement(
-                        "UPDATE Carta SET Nombre=?, Tipo=?, Puntuacion=?, Estado=? WHERE id_carta=? AND Dueno=?")) {
-                    ps.setString(1, nombre);
-                    ps.setString(2, tipo);
-                    ps.setInt(3, puntosValor);
-                    ps.setString(4, estado);
-                    ps.setInt(5, idCarta);
-                    ps.setString(6, usuario);
-
-                    int actualizadas = ps.executeUpdate();
-                    if (actualizadas > 0) {
-                        String destino = "miColeccion.jsp?mensaje="
-                                + java.net.URLEncoder.encode("Carta modificada correctamente", "UTF-8");
-                        response.sendRedirect(destino);
-                        return;
-                    }
+                Carta cartaActual = cartaDada.obtenerCartaPorId(idCarta);
+                if (cartaActual == null || !usuario.equals(cartaActual.dueno)) {
+                    mensajeTexto = "Error: no se pudo modificar la carta.";
+                    mensajeClase = "mensaje_error";
+                } else if (cartaActual.actualizarDatos(
+                        nombre,
+                        tipo,
+                        puntosValor,
+                        Carta.EstadoC.valueOf(estado))) {
+                    String destino = "miColeccion.jsp?mensaje="
+                            + java.net.URLEncoder.encode("Carta modificada correctamente", "UTF-8");
+                    response.sendRedirect(destino);
+                    return;
+                } else {
                     mensajeTexto = "Error: no se pudo modificar la carta.";
                     mensajeClase = "mensaje_error";
                 }
             } catch (Exception e) {
                 mensajeTexto = "Error: fallo al modificar la carta en base de datos.";
                 mensajeClase = "mensaje_error";
-            } finally {
-                db.disconnect();
             }
         }
     }
 
     if (idCarta > 0) {
-        DatabaseManager db = new DatabaseManager();
         try {
-            db.connect();
-            try (PreparedStatement ps = db.getConnection().prepareStatement(
-                    "SELECT Nombre, Puntuacion, Tipo, Estado, DATE_FORMAT(FechaAlta, '%Y-%m-%d') AS fecha "
-                            + "FROM Carta WHERE id_carta=? AND Dueno=?")) {
-                ps.setInt(1, idCarta);
-                ps.setString(2, usuario);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        cartaEncontrada = true;
-                        if (!"POST".equalsIgnoreCase(request.getMethod())) {
-                            nombre = rs.getString("Nombre");
-                            puntos = String.valueOf(rs.getInt("Puntuacion"));
-                            tipo = rs.getString("Tipo");
-                            estado = rs.getString("Estado");
-                        }
-                        fechaAlta = rs.getString("fecha");
-                    }
+            Carta cartaActual = cartaDada.obtenerCartaPorId(idCarta);
+            if (cartaActual != null && usuario.equals(cartaActual.dueno)) {
+                cartaEncontrada = true;
+                if (!"POST".equalsIgnoreCase(request.getMethod())) {
+                    nombre = cartaActual.nombre;
+                    puntos = String.valueOf(cartaActual.puntuacion);
+                    tipo = cartaActual.tipo;
+                    estado = cartaActual.estado.name();
+                }
+                if (cartaActual.fechaAlta != null) {
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+                    fechaAlta = sdf.format(cartaActual.fechaAlta);
                 }
             }
         } catch (Exception e) {
@@ -127,8 +115,6 @@
                 mensajeTexto = "Error: no se pudo cargar la carta.";
                 mensajeClase = "mensaje_error";
             }
-        } finally {
-            db.disconnect();
         }
     }
 

@@ -1,8 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="main.java.pokemon.DatabaseManager" %>
-<%@ page import="java.sql.Connection" %>
-<%@ page import="java.sql.PreparedStatement" %>
-<%@ page import="java.sql.ResultSet" %>
+<%@ page import="main.java.pokemon.Carta" %>
+<%@ page import="main.java.pokemon.CartaDada" %>
+<%@ page import="main.java.pokemon.Solicitud" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ include file="WEB-INF/includes/sessionUsuario.jsp" %>
@@ -44,180 +43,51 @@
             mensajeTexto = "Error: no puedes intercambiar una carta consigo misma.";
             mensajeClase = "mensaje_error";
         } else {
-            DatabaseManager db = new DatabaseManager();
-            Connection conn = null;
             try {
-                db.connect();
-                conn = db.getConnection();
-                conn.setAutoCommit(false);
-
-                String duenoCartaSolicitada = null;
-                String estadoCartaSolicitada = null;
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "SELECT Dueno, Estado FROM Carta WHERE id_carta=? FOR UPDATE")) {
-                    ps.setInt(1, idCartaSolicitada);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            duenoCartaSolicitada = rs.getString("Dueno");
-                            estadoCartaSolicitada = rs.getString("Estado");
-                        }
-                    }
-                }
-
-                String duenoCartaOfrecida = null;
-                String estadoCartaOfrecida = null;
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "SELECT Dueno, Estado FROM Carta WHERE id_carta=? FOR UPDATE")) {
-                    ps.setInt(1, idCartaOfrecida);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            duenoCartaOfrecida = rs.getString("Dueno");
-                            estadoCartaOfrecida = rs.getString("Estado");
-                        }
-                    }
-                }
-
-                if (duenoCartaSolicitada == null || duenoCartaOfrecida == null) {
-                    conn.rollback();
-                    mensajeTexto = "Error: alguna carta seleccionada no existe.";
-                    mensajeClase = "mensaje_error";
-                } else if (usuario.equals(duenoCartaSolicitada)) {
-                    conn.rollback();
-                    mensajeTexto = "Error: la carta solicitada debe ser de otro usuario.";
-                    mensajeClase = "mensaje_error";
-                } else if (!usuario.equals(duenoCartaOfrecida)) {
-                    conn.rollback();
-                    mensajeTexto = "Error: la carta ofrecida debe ser tuya.";
-                    mensajeClase = "mensaje_error";
-                } else if (!"DISPONIBLE".equals(estadoCartaSolicitada) || !"DISPONIBLE".equals(estadoCartaOfrecida)) {
-                    conn.rollback();
-                    mensajeTexto = "Error: solo se pueden intercambiar cartas en estado DISPONIBLE.";
-                    mensajeClase = "mensaje_error";
-                } else {
-                    int reserva1 = 0;
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "UPDATE Carta SET Estado='RESERVADA' WHERE id_carta=? AND Estado='DISPONIBLE'")) {
-                        ps.setInt(1, idCartaSolicitada);
-                        reserva1 = ps.executeUpdate();
-                    }
-
-                    int reserva2 = 0;
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "UPDATE Carta SET Estado='RESERVADA' WHERE id_carta=? AND Estado='DISPONIBLE'")) {
-                        ps.setInt(1, idCartaOfrecida);
-                        reserva2 = ps.executeUpdate();
-                    }
-
-                    if (reserva1 != 1 || reserva2 != 1) {
-                        conn.rollback();
-                        mensajeTexto = "Error: no se pudo reservar una de las cartas.";
-                        mensajeClase = "mensaje_error";
-                    } else {
-                        int insertadas = 0;
-                        try (PreparedStatement ps = conn.prepareStatement(
-                                "INSERT INTO Solicitud (id_carta1, Dueno1, id_carta2, Dueno2, Estado, FechaSolicitud) "
-                                        + "VALUES (?, ?, ?, ?, 'PENDIENTE', CURDATE())")) {
-                            ps.setInt(1, idCartaSolicitada);
-                            ps.setString(2, duenoCartaSolicitada);
-                            ps.setInt(3, idCartaOfrecida);
-                            ps.setString(4, usuario);
-                            insertadas = ps.executeUpdate();
-                        }
-
-                        if (insertadas == 1) {
-                            conn.commit();
-                            String destino = "solicitudesEnviadas.jsp?mensaje="
-                                    + java.net.URLEncoder.encode("Solicitud enviada correctamente", "UTF-8");
-                            response.sendRedirect(destino);
-                            return;
-                        }
-
-                        conn.rollback();
-                        mensajeTexto = "Error: no se pudo crear la solicitud.";
-                        mensajeClase = "mensaje_error";
-                    }
-                }
+                Solicitud.crear(idCartaSolicitada, idCartaOfrecida, usuario);
+                String destino = "solicitudesEnviadas.jsp?mensaje="
+                        + java.net.URLEncoder.encode("Solicitud enviada correctamente", "UTF-8");
+                response.sendRedirect(destino);
+                return;
+            } catch (IllegalArgumentException e) {
+                mensajeTexto = "Error: " + e.getMessage();
+                mensajeClase = "mensaje_error";
+            } catch (IllegalStateException e) {
+                mensajeTexto = "Error: " + e.getMessage();
+                mensajeClase = "mensaje_error";
             } catch (Exception e) {
-                if (conn != null) {
-                    try {
-                        conn.rollback();
-                    } catch (Exception ignored) { }
-                }
                 mensajeTexto = "Error: fallo en base de datos al crear la solicitud.";
                 mensajeClase = "mensaje_error";
-            } finally {
-                if (conn != null) {
-                    try {
-                        conn.setAutoCommit(true);
-                    } catch (Exception ignored) { }
-                }
-                db.disconnect();
             }
         }
     }
 
-    List<String[]> cartasOtros = new ArrayList<String[]>();
-    List<String[]> misCartas = new ArrayList<String[]>();
+    List<Carta> cartasOtros = new ArrayList<Carta>();
+    List<Carta> misCartas = new ArrayList<Carta>();
 
-    DatabaseManager dbListas = new DatabaseManager();
     try {
-        dbListas.connect();
-
-        try (PreparedStatement ps = dbListas.getConnection().prepareStatement(
-                "SELECT id_carta, Nombre, Dueno, Estado FROM Carta "
-                        + "WHERE Dueno<>? "
-                        + "ORDER BY CASE WHEN Estado='DISPONIBLE' THEN 0 ELSE 1 END, Nombre ASC")) {
-            ps.setString(1, usuario);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    cartasOtros.add(new String[] {
-                            String.valueOf(rs.getInt("id_carta")),
-                            rs.getString("Nombre"),
-                            rs.getString("Dueno"),
-                            rs.getString("Estado")
-                    });
-                }
-            }
-        }
-
-        try (PreparedStatement ps = dbListas.getConnection().prepareStatement(
-                "SELECT id_carta, Nombre, Dueno, Estado FROM Carta "
-                        + "WHERE Dueno=? "
-                        + "ORDER BY CASE WHEN Estado='DISPONIBLE' THEN 0 ELSE 1 END, Nombre ASC")) {
-            ps.setString(1, usuario);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    misCartas.add(new String[] {
-                            String.valueOf(rs.getInt("id_carta")),
-                            rs.getString("Nombre"),
-                            rs.getString("Dueno"),
-                            rs.getString("Estado")
-                    });
-                }
-            }
-        }
-
+        CartaDada cartaDada = new CartaDada();
+        cartasOtros = cartaDada.buscarCartasDeOtrosUsuarios("", false, usuario, false, "");
+        misCartas = cartaDada.buscarCartas("", false, usuario, false, "");
     } catch (Exception e) {
         if (mensajeTexto.isEmpty()) {
             mensajeTexto = "Error: no se pudieron cargar las cartas disponibles.";
             mensajeClase = "mensaje_error";
         }
-    } finally {
-        dbListas.disconnect();
     }
 
     String textoCartaSolicitada = "";
-    for (String[] fila : cartasOtros) {
-        if (fila[0].equals(idCartaSolicitadaSel)) {
-            textoCartaSolicitada = fila[1] + " (Dueno: " + fila[2] + ")";
+    for (Carta carta : cartasOtros) {
+        if (String.valueOf(carta.idCarta).equals(idCartaSolicitadaSel)) {
+            textoCartaSolicitada = carta.nombre + " (Dueno: " + carta.dueno + ")";
             break;
         }
     }
 
     String textoCartaOfrecida = "";
-    for (String[] fila : misCartas) {
-        if (fila[0].equals(idCartaOfrecidaSel)) {
-            textoCartaOfrecida = fila[1] + " (Dueno: " + usuario + ")";
+    for (Carta carta : misCartas) {
+        if (String.valueOf(carta.idCarta).equals(idCartaOfrecidaSel)) {
+            textoCartaOfrecida = carta.nombre + " (Dueno: " + usuario + ")";
             break;
         }
     }
@@ -338,19 +208,19 @@
                             <% if (cartasOtros.isEmpty()) { %>
                             <tr><td colspan="4">No hay cartas de otros usuarios.</td></tr>
                             <% } else { %>
-                            <% for (String[] fila : cartasOtros) {
-                                String nombreJs = fila[1].replace("\\", "\\\\").replace("'", "\\'");
-                                String duenoJs = fila[2].replace("\\", "\\\\").replace("'", "\\'");
-                                boolean seleccionable = "DISPONIBLE".equals(fila[3]);
+                            <% for (Carta carta : cartasOtros) {
+                                String nombreJs = carta.nombre.replace("\\", "\\\\").replace("'", "\\'");
+                                String duenoJs = carta.dueno.replace("\\", "\\\\").replace("'", "\\'");
+                                boolean seleccionable = Carta.EstadoC.DISPONIBLE.equals(carta.estado);
                             %>
                             <tr>
-                                <td><%= fila[1] %></td>
-                                <td><%= fila[2] %></td>
-                                <td><%= fila[3] %></td>
+                                <td><%= carta.nombre %></td>
+                                <td><%= carta.dueno %></td>
+                                <td><%= carta.estado %></td>
                                 <td>
                                     <% if (seleccionable) { %>
                                     <button type="button"
-                                            onclick="seleccionarCarta1('<%= fila[0] %>', '<%= nombreJs %>', '<%= duenoJs %>', event)">
+                                            onclick="seleccionarCarta1('<%= carta.idCarta %>', '<%= nombreJs %>', '<%= duenoJs %>', event)">
                                         Seleccionar
                                     </button>
                                     <% } else { %>
@@ -392,17 +262,17 @@
                             <% if (misCartas.isEmpty()) { %>
                             <tr><td colspan="3">No tienes cartas en tu coleccion.</td></tr>
                             <% } else { %>
-                            <% for (String[] fila : misCartas) {
-                                String nombreJs = fila[1].replace("\\", "\\\\").replace("'", "\\'");
-                                boolean seleccionable = "DISPONIBLE".equals(fila[3]);
+                            <% for (Carta carta : misCartas) {
+                                String nombreJs = carta.nombre.replace("\\", "\\\\").replace("'", "\\'");
+                                boolean seleccionable = Carta.EstadoC.DISPONIBLE.equals(carta.estado);
                             %>
                             <tr>
-                                <td><%= fila[1] %></td>
-                                <td><%= fila[3] %></td>
+                                <td><%= carta.nombre %></td>
+                                <td><%= carta.estado %></td>
                                 <td>
                                     <% if (seleccionable) { %>
                                     <button type="button"
-                                            onclick="seleccionarCarta2('<%= fila[0] %>', '<%= nombreJs %>', event)">
+                                            onclick="seleccionarCarta2('<%= carta.idCarta %>', '<%= nombreJs %>', event)">
                                         Seleccionar
                                     </button>
                                     <% } else { %>

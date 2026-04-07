@@ -1,8 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="main.java.pokemon.DatabaseManager" %>
-<%@ page import="java.sql.Connection" %>
-<%@ page import="java.sql.PreparedStatement" %>
-<%@ page import="java.sql.ResultSet" %>
+<%@ page import="main.java.pokemon.Solicitud" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ include file="WEB-INF/includes/sessionUsuario.jsp" %>
@@ -30,157 +27,45 @@
             mensajeTexto = "Error: solicitud no valida.";
             mensajeClase = "mensaje_error";
         } else {
-            DatabaseManager db = new DatabaseManager();
-            Connection conn = null;
             try {
-                db.connect();
-                conn = db.getConnection();
-                conn.setAutoCommit(false);
-
-                int idCarta1 = -1;
-                int idCarta2 = -1;
-                String dueno1 = null;
-                String dueno2 = null;
-                String estado = null;
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "SELECT id_carta1, id_carta2, Dueno1, Dueno2, Estado "
-                                + "FROM Solicitud WHERE id_solicitud=? AND Dueno1=? FOR UPDATE")) {
-                    ps.setInt(1, idSolicitud);
-                    ps.setString(2, usuario);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            idCarta1 = rs.getInt("id_carta1");
-                            idCarta2 = rs.getInt("id_carta2");
-                            dueno1 = rs.getString("Dueno1");
-                            dueno2 = rs.getString("Dueno2");
-                            estado = rs.getString("Estado");
-                        }
-                    }
-                }
-
-                if (idCarta1 <= 0 || idCarta2 <= 0) {
-                    conn.rollback();
+                Solicitud solicitud = Solicitud.obtenerPorIdYDueno1(idSolicitud, usuario);
+                if (solicitud == null) {
                     mensajeTexto = "Error: solicitud no encontrada.";
                     mensajeClase = "mensaje_error";
-                } else if (!"PENDIENTE".equals(estado)) {
-                    conn.rollback();
-                    mensajeTexto = "Error: la solicitud ya esta resuelta.";
-                    mensajeClase = "mensaje_error";
                 } else if ("aceptar".equalsIgnoreCase(action)) {
-                    int up1;
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "UPDATE Carta SET Dueno=?, Estado='DISPONIBLE' WHERE id_carta=?")) {
-                        ps.setString(1, dueno2);
-                        ps.setInt(2, idCarta1);
-                        up1 = ps.executeUpdate();
-                    }
-
-                    int up2;
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "UPDATE Carta SET Dueno=?, Estado='DISPONIBLE' WHERE id_carta=?")) {
-                        ps.setString(1, dueno1);
-                        ps.setInt(2, idCarta2);
-                        up2 = ps.executeUpdate();
-                    }
-
-                    int upSolicitud;
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "UPDATE Solicitud SET Estado='ACEPTADO' WHERE id_solicitud=?")) {
-                        ps.setInt(1, idSolicitud);
-                        upSolicitud = ps.executeUpdate();
-                    }
-
-                    if (up1 == 1 && up2 == 1 && upSolicitud == 1) {
-                        conn.commit();
-                        String destino = "solicitudesRecibidas.jsp?mensaje="
-                                + java.net.URLEncoder.encode("Solicitud aceptada correctamente", "UTF-8");
-                        response.sendRedirect(destino);
-                        return;
-                    }
-
-                    conn.rollback();
-                    mensajeTexto = "Error: no se pudo aceptar la solicitud.";
-                    mensajeClase = "mensaje_error";
+                    solicitud.aceptar();
+                    String destino = "solicitudesRecibidas.jsp?mensaje="
+                            + java.net.URLEncoder.encode("Solicitud aceptada correctamente", "UTF-8");
+                    response.sendRedirect(destino);
+                    return;
                 } else {
-                    int upCartas;
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "UPDATE Carta SET Estado='DISPONIBLE' WHERE id_carta IN (?, ?)")) {
-                        ps.setInt(1, idCarta1);
-                        ps.setInt(2, idCarta2);
-                        upCartas = ps.executeUpdate();
-                    }
-
-                    int upSolicitud;
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "UPDATE Solicitud SET Estado='RECHAZADO' WHERE id_solicitud=?")) {
-                        ps.setInt(1, idSolicitud);
-                        upSolicitud = ps.executeUpdate();
-                    }
-
-                    if (upCartas >= 1 && upSolicitud == 1) {
-                        conn.commit();
-                        String destino = "solicitudesRecibidas.jsp?mensaje="
-                                + java.net.URLEncoder.encode("Solicitud rechazada correctamente", "UTF-8");
-                        response.sendRedirect(destino);
-                        return;
-                    }
-
-                    conn.rollback();
-                    mensajeTexto = "Error: no se pudo rechazar la solicitud.";
-                    mensajeClase = "mensaje_error";
+                    solicitud.rechazar();
+                    String destino = "solicitudesRecibidas.jsp?mensaje="
+                            + java.net.URLEncoder.encode("Solicitud rechazada correctamente", "UTF-8");
+                    response.sendRedirect(destino);
+                    return;
                 }
+            } catch (IllegalArgumentException e) {
+                mensajeTexto = "Error: " + e.getMessage();
+                mensajeClase = "mensaje_error";
+            } catch (IllegalStateException e) {
+                mensajeTexto = "Error: " + e.getMessage();
+                mensajeClase = "mensaje_error";
             } catch (Exception e) {
-                if (conn != null) {
-                    try {
-                        conn.rollback();
-                    } catch (Exception ignored) { }
-                }
                 mensajeTexto = "Error: fallo en base de datos al procesar la solicitud.";
                 mensajeClase = "mensaje_error";
-            } finally {
-                if (conn != null) {
-                    try {
-                        conn.setAutoCommit(true);
-                    } catch (Exception ignored) { }
-                }
-                db.disconnect();
             }
         }
     }
 
-    List<String[]> solicitudes = new ArrayList<String[]>();
-    DatabaseManager dbList = new DatabaseManager();
+    List<Solicitud.ResumenSolicitud> solicitudes = new ArrayList<Solicitud.ResumenSolicitud>();
     try {
-        dbList.connect();
-        try (PreparedStatement ps = dbList.getConnection().prepareStatement(
-                "SELECT s.id_solicitud, c1.Nombre AS cartaSolicitada, c2.Nombre AS cartaOfrecida, "
-                        + "s.Dueno2, s.Estado, DATE_FORMAT(s.FechaSolicitud, '%Y-%m-%d') AS fecha "
-                        + "FROM Solicitud s "
-                        + "JOIN Carta c1 ON c1.id_carta = s.id_carta1 "
-                        + "JOIN Carta c2 ON c2.id_carta = s.id_carta2 "
-                        + "WHERE s.Dueno1=? "
-                        + "ORDER BY s.FechaSolicitud DESC")) {
-            ps.setString(1, usuario);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    solicitudes.add(new String[] {
-                            String.valueOf(rs.getInt("id_solicitud")),
-                            rs.getString("cartaSolicitada"),
-                            rs.getString("cartaOfrecida"),
-                            rs.getString("Dueno2"),
-                            rs.getString("Estado"),
-                            rs.getString("fecha")
-                    });
-                }
-            }
-        }
+        solicitudes = Solicitud.obtenerSolicitudesRecibidas(usuario);
     } catch (Exception e) {
         if (mensajeTexto.isEmpty()) {
             mensajeTexto = "Error: no se pudieron cargar las solicitudes recibidas.";
             mensajeClase = "mensaje_error";
         }
-    } finally {
-        dbList.disconnect();
     }
 %>
 <!DOCTYPE html>
@@ -285,19 +170,19 @@
                 <% if (solicitudes.isEmpty()) { %>
                 <tr><td colspan="6">No tienes solicitudes recibidas.</td></tr>
                 <% } else { %>
-                <% for (String[] fila : solicitudes) { %>
+                <% for (Solicitud.ResumenSolicitud fila : solicitudes) { %>
                 <tr>
                     <td>
                         <input type="radio" name="seleccionarSolicitud"
-                               value="<%= fila[0] %>"
-                               data-estado="<%= fila[4] %>"
+                               value="<%= fila.idSolicitud %>"
+                               data-estado="<%= fila.estado %>"
                                onclick="habilitarBotones()">
                     </td>
-                    <td><%= fila[1] %></td>
-                    <td><%= fila[2] %></td>
-                    <td><%= fila[3] %></td>
-                    <td><%= fila[4] %></td>
-                    <td><%= fila[5] %></td>
+                    <td><%= fila.cartaSolicitada %></td>
+                    <td><%= fila.cartaOfrecida %></td>
+                    <td><%= fila.duenoCartaOfrecida %></td>
+                    <td><%= fila.estado %></td>
+                    <td><%= fila.fechaSolicitud %></td>
                 </tr>
                 <% } %>
                 <% } %>

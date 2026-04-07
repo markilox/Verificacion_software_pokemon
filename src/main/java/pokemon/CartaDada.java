@@ -1,19 +1,28 @@
 package main.java.pokemon;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CartaDada {
 
-    // ===== MÉTODOS PÚBLICOS =====
-
     public List<Carta> buscarCartas(String texto, boolean soloDisponibles, String dueno,
                                     boolean ordenarPorPuntos, String tipoFiltro) throws Exception {
 
         System.out.println("Buscando cartas del usuario: " + dueno);
 
-        return buscarCartasBD(texto, soloDisponibles, dueno, ordenarPorPuntos, tipoFiltro);
+        return buscarCartasBD(texto, soloDisponibles, dueno, ordenarPorPuntos, tipoFiltro, false);
+    }
+
+    public List<Carta> buscarCartasDeOtrosUsuarios(String texto, boolean soloDisponibles,
+                                                   String duenoExcluido, boolean ordenarPorPuntos,
+                                                   String tipoFiltro) throws Exception {
+
+        System.out.println("Buscando cartas de usuarios distintos de: " + duenoExcluido);
+
+        return buscarCartasBD(texto, soloDisponibles, duenoExcluido, ordenarPorPuntos, tipoFiltro, true);
     }
 
     public Carta obtenerCartaPorId(int id) throws Exception {
@@ -23,53 +32,72 @@ public class CartaDada {
         return buscarCartaPorIdBD(id);
     }
 
-
     private List<Carta> buscarCartasBD(String texto, boolean soloDisponibles, String dueno,
-                                       boolean ordenarPorPuntos, String tipoFiltro) {
+                                       boolean ordenarPorPuntos, String tipoFiltro,
+                                       boolean excluirDueno) {
 
-        List<Carta> lista = new ArrayList<>();
+        List<Carta> lista = new ArrayList<Carta>();
 
         DatabaseManager db = new DatabaseManager();
 
         try {
 
             db.connect();
+            Connection connection = db.getConnection();
+            StringBuilder sql = new StringBuilder("SELECT * FROM Carta WHERE ");
+            List<Object> parametros = new ArrayList<Object>();
 
-            String sql = "SELECT * FROM Carta WHERE Dueno='" + dueno + "'";
+            if (excluirDueno) {
+                sql.append("Dueno<>?");
+            } else {
+                sql.append("Dueno=?");
+            }
+            parametros.add(dueno);
 
             if (texto != null && !texto.isEmpty()) {
-                sql += " AND Nombre LIKE '%" + texto + "%'";
+                sql.append(" AND Nombre LIKE ?");
+                parametros.add("%" + texto + "%");
             }
 
             if (soloDisponibles) {
-                sql += " AND Estado='DISPONIBLE'";
+                sql.append(" AND Estado=?");
+                parametros.add(Carta.EstadoC.DISPONIBLE.name());
             }
 
             if (tipoFiltro != null && !tipoFiltro.isEmpty()) {
-                sql += " AND Tipo='" + tipoFiltro + "'";
+                sql.append(" AND Tipo=?");
+                parametros.add(tipoFiltro);
             }
 
             if (ordenarPorPuntos) {
-                sql += " ORDER BY Puntuacion DESC";
+                sql.append(" ORDER BY Puntuacion DESC");
+            } else {
+                sql.append(" ORDER BY CASE WHEN Estado='DISPONIBLE' THEN 0 ELSE 1 END, Nombre ASC");
             }
 
             System.out.println("SQL ejecutado: " + sql);
 
-            ResultSet rs = db.executeQuery(sql);
+            try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+                for (int i = 0; i < parametros.size(); i++) {
+                    ps.setObject(i + 1, parametros.get(i));
+                }
 
-            while (rs != null && rs.next()) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
 
-                Carta carta = new Carta(
-                        rs.getInt("id_carta"),
-                        rs.getString("Dueno"),
-                        rs.getString("Nombre"),
-                        rs.getString("Tipo"),
-                        rs.getInt("Puntuacion"),
-                        Carta.EstadoC.valueOf(rs.getString("Estado")),
-                        rs.getDate("FechaAlta")
-                );
+                        Carta carta = new Carta(
+                                rs.getInt("id_carta"),
+                                rs.getString("Dueno"),
+                                rs.getString("Nombre"),
+                                rs.getString("Tipo"),
+                                rs.getInt("Puntuacion"),
+                                Carta.EstadoC.valueOf(rs.getString("Estado")),
+                                rs.getDate("FechaAlta")
+                        );
 
-                lista.add(carta);
+                        lista.add(carta);
+                    }
+                }
             }
 
             System.out.println("Cartas encontradas: " + lista.size());
@@ -94,24 +122,28 @@ public class CartaDada {
         try {
 
             db.connect();
-
-            String sql = "SELECT * FROM Carta WHERE id_carta=" + id;
+            Connection connection = db.getConnection();
+            String sql = "SELECT * FROM Carta WHERE id_carta=?";
 
             System.out.println("SQL SELECT: " + sql);
 
-            ResultSet rs = db.executeQuery(sql);
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, id);
 
-            if (rs != null && rs.next()) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
 
-                return new Carta(
-                        rs.getInt("id_carta"),
-                        rs.getString("Dueno"),
-                        rs.getString("Nombre"),
-                        rs.getString("Tipo"),
-                        rs.getInt("Puntuacion"),
-                        Carta.EstadoC.valueOf(rs.getString("Estado")),
-                        rs.getDate("FechaAlta")
-                );
+                        return new Carta(
+                                rs.getInt("id_carta"),
+                                rs.getString("Dueno"),
+                                rs.getString("Nombre"),
+                                rs.getString("Tipo"),
+                                rs.getInt("Puntuacion"),
+                                Carta.EstadoC.valueOf(rs.getString("Estado")),
+                                rs.getDate("FechaAlta")
+                        );
+                    }
+                }
             }
 
         } catch (Exception e) {
