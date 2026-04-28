@@ -166,6 +166,63 @@ public class SolicitudTest {
                 "Debe lanzarse IllegalStateException al aceptar una solicitud ya resuelta");
     }
 
+    // -----------------------------------------------------------------------------
+    // CP AC-6 : Fallo en la segunda actualización lógica del proceso de aceptación.
+    // -----------------------------------------------------------------------------
+
+    @Test
+    void aceptarSolicitud_CP_AC6_falloSegundaActualizacion() throws Exception {
+
+        Solicitud solicitud = Solicitud.crear(idCarta1, idCarta2, "User2");
+        idSolicitudTest = solicitud.idSolicitud;
+
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+
+            // borrar carta2 para que falle segunda actualización
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM Carta WHERE id_carta = ?")) {
+                ps.setInt(1, idCarta2);
+                ps.executeUpdate();
+            }
+        }
+
+        assertThrows(Exception.class,
+                solicitud::aceptar,
+                "Debe fallar la segunda actualización lógica");
+    }
+
+    // -----------------------------------------------------------------------------
+    // CP AC-7 : Fallo en la tercera actualización lógica del proceso de aceptación.
+    // -----------------------------------------------------------------------------
+
+    @Test
+    void aceptarSolicitud_CP_AC7_falloActualizacionSolicitud() throws Exception {
+
+        Solicitud solicitud = Solicitud.crear(idCarta1, idCarta2, "User2");
+        idSolicitudTest = solicitud.idSolicitud;
+
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+
+            // borrar solicitud antes del update final
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM Solicitud WHERE id_solicitud = ?")) {
+                ps.setInt(1, idSolicitudTest);
+                ps.executeUpdate();
+            }
+        }
+
+        assertThrows(Exception.class,
+                solicitud::aceptar,
+                "Debe fallar la actualización del estado solicitud");
+    }
+
+    // ----------------------------------------------------------------------------
+    // CP AC-8 : Fallo en la cuarta actualización lógica del proceso de aceptación.
+    // ----------------------------------------------------------------------------
+
+    
+
+
     // -------------------------------------------------------------------------
     // Metodos auxiliares
     // -------------------------------------------------------------------------
