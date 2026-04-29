@@ -246,7 +246,7 @@ public class SolicitudTest {
         try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
             prepararCartasReservadas(conn, idCarta1, idCarta2);
             idSolicitudTest = insertarSolicitud(conn, idCarta1, "User1", idCarta2, "User2", "PENDIENTE");
-            bloquearPrimeraActualizacionCarta(conn, "TestPikachu");
+            bloquearPrimeraYSegundaActualizacionCarta(conn, "TestPikachu", "User2");
         }
 
         Solicitud solicitud = Solicitud.obtenerPorId(idSolicitudTest);
@@ -269,39 +269,110 @@ public class SolicitudTest {
     // -------------------------------------------------------------------------
 
     @Test
+    @DisplayName("CP AC-6 - Falla la segunda actualizacion")
     void aceptarSolicitud_CP_AC6_falloSegundaActualizacion() throws Exception {
-        Solicitud solicitud = Solicitud.crear(idCarta1, idCarta2, "User2");
-        idSolicitudTest = solicitud.idSolicitud;
-
         try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
-            try (PreparedStatement ps = conn.prepareStatement(
-                    "DELETE FROM Carta WHERE id_carta = ?")) {
-                ps.setInt(1, idCarta2);
-                ps.executeUpdate();
-            }
+            prepararCartasReservadas(conn, idCarta1, idCarta2);
+            idSolicitudTest = insertarSolicitud(conn, idCarta1, "User1", idCarta2, "User2", "PENDIENTE");
+            bloquearPrimeraYSegundaActualizacionCarta(conn, "TestBulbasaur", "User1");
         }
 
-        assertThrows(Exception.class, solicitud::aceptar);
+        Solicitud solicitud = Solicitud.obtenerPorId(idSolicitudTest);
+        assertNotNull(solicitud);
+
+        SQLException ex = assertThrows(SQLException.class, solicitud::aceptar);
+        assertNotNull(ex.getMessage());
+
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+            assertEquals("User1", getDuenoCarta(conn, idCarta1));
+            assertEquals("User2", getDuenoCarta(conn, idCarta2));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta1));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta2));
+            assertEquals("PENDIENTE", getEstadoSolicitud(conn, idSolicitudTest));
+        }
     }
 
     // -------------------------------------------------------------------------
-    // CP AC-7 : Aceptar Solicitud - fallo en la actualizacion final
+    // CP AC-7 : Aceptar Solicitud - fallo en la tercera actualizacion
     // -------------------------------------------------------------------------
 
     @Test
-    void aceptarSolicitud_CP_AC7_falloActualizacionSolicitud() throws Exception {
-        Solicitud solicitud = Solicitud.crear(idCarta1, idCarta2, "User2");
-        idSolicitudTest = solicitud.idSolicitud;
-
+    @DisplayName("CP AC-7 - Falla la tercera actualizacion")
+    void aceptarSolicitud_CP_AC7_falloTerceraActualizacion() throws Exception {
         try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
-            try (PreparedStatement ps = conn.prepareStatement(
-                    "DELETE FROM Solicitud WHERE id_solicitud = ?")) {
-                ps.setInt(1, idSolicitudTest);
-                ps.executeUpdate();
-            }
+            prepararCartasReservadas(conn, idCarta1, idCarta2);
+            idSolicitudTest = insertarSolicitud(conn, idCarta1, "User1", idCarta2, "User2", "PENDIENTE");
+            bloquearTerceraYCuartaActualizacionCarta(conn, "TestPikachu");
         }
 
-        assertThrows(Exception.class, solicitud::aceptar);
+        Solicitud solicitud = Solicitud.obtenerPorId(idSolicitudTest);
+        assertNotNull(solicitud);
+
+        SQLException ex = assertThrows(SQLException.class, solicitud::aceptar);
+        assertNotNull(ex.getMessage());
+
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+            assertEquals("User1", getDuenoCarta(conn, idCarta1));
+            assertEquals("User2", getDuenoCarta(conn, idCarta2));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta1));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta2));
+            assertEquals("PENDIENTE", getEstadoSolicitud(conn, idSolicitudTest));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // CP AC-8 : Aceptar Solicitud - fallo en la cuarta actualizacion
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("CP AC-8 - Falla la cuarta actualizacion")
+    void aceptarSolicitud_CP_AC8_falloCuartaActualizacion() throws Exception {
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+            prepararCartasReservadas(conn, idCarta1, idCarta2);
+            idSolicitudTest = insertarSolicitud(conn, idCarta1, "User1", idCarta2, "User2", "PENDIENTE");
+            bloquearTerceraYCuartaActualizacionCarta(conn, "TestBulbasaur");
+        }
+
+        Solicitud solicitud = Solicitud.obtenerPorId(idSolicitudTest);
+        assertNotNull(solicitud);
+
+        SQLException ex = assertThrows(SQLException.class, solicitud::aceptar);
+        assertNotNull(ex.getMessage());
+
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+            assertEquals("User1", getDuenoCarta(conn, idCarta1));
+            assertEquals("User2", getDuenoCarta(conn, idCarta2));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta1));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta2));
+            assertEquals("PENDIENTE", getEstadoSolicitud(conn, idSolicitudTest));
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------
+    // CP AC-9 : Aceptar Solicitud - fallo tras haberse actualizado correctamente ambas cartas.
+    // ----------------------------------------------------------------------------------------
+    @Test
+    @DisplayName("CP AC-8 - Falla actualizacion del estado de solicitud")
+    void aceptarSolicitud_CP_AC9_falloActualizacionEstado() throws Exception {
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+            prepararCartasReservadas(conn, idCarta1, idCarta2);
+            idSolicitudTest = insertarSolicitud(conn, idCarta1, "User1", idCarta2, "User2", "PENDIENTE");
+            bloquearActualizacionEstadoSolicitud(conn);
+        }
+
+        Solicitud solicitud = Solicitud.obtenerPorId(idSolicitudTest);
+        assertNotNull(solicitud);
+
+        SQLException ex = assertThrows(SQLException.class, solicitud::aceptar);
+        assertNotNull(ex.getMessage());
+
+        try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
+            assertEquals("User1", getDuenoCarta(conn, idCarta1));
+            assertEquals("User2", getDuenoCarta(conn, idCarta2));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta1));
+            assertEquals("RESERVADA", getEstadoCarta(conn, idCarta2));
+            assertEquals("PENDIENTE", getEstadoSolicitud(conn, idSolicitudTest));
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -415,20 +486,49 @@ public class SolicitudTest {
         }
     }
 
-    private void bloquearPrimeraActualizacionCarta(Connection conn, String nombreCarta) throws Exception {
+    private void bloquearPrimeraYSegundaActualizacionCarta(Connection conn, String nombreCarta, String duenoCarta) throws Exception {
         eliminarRestriccionTemporalCarta(conn);
         try (Statement st = conn.createStatement()) {
             st.execute(
                     "ALTER TABLE Carta " +
-                    "ADD CONSTRAINT chk_cp_ac5_primera_actualizacion " +
-                    "CHECK (Nombre <> '" + nombreCarta + "' OR Dueno <> 'User2' OR Estado <> 'DISPONIBLE')"
+                    "ADD CONSTRAINT chk_cp_carta_actualizacion " +
+                    "CHECK (Nombre <> '" + nombreCarta + "' OR Dueno <> '" + duenoCarta + "'"
+            );
+        }
+    }
+
+    private void bloquearTerceraYCuartaActualizacionCarta(Connection conn, String nombreCarta) throws Exception {
+        eliminarRestriccionTemporalCarta(conn);
+        try (Statement st = conn.createStatement()) {
+            st.execute(
+                    "ALTER TABLE Carta " +
+                    "ADD CONSTRAINT chk_cp_carta_actualizacion " +
+                    "CHECK (Nombre <> '" + nombreCarta + "' OR Estado <> 'DISPONIBLE')"
             );
         }
     }
 
     private void eliminarRestriccionTemporalCarta(Connection conn) {
         try (Statement st = conn.createStatement()) {
-            st.execute("ALTER TABLE Carta DROP CHECK chk_cp_ac5_primera_actualizacion");
+            st.execute("ALTER TABLE Carta DROP CHECK chk_cp_carta_actualizacion");
+        } catch (SQLException ignored) {
+        }
+    }
+
+    private void bloquearActualizacionEstadoSolicitud(Connection conn) throws Exception {
+        eliminarRestriccionTemporalEstadoSolicitud(conn);
+        try (Statement st = conn.createStatement()) {
+            st.execute(
+                "ALTER TABLE Solicitud " +
+                "ADD CONSTRAINT chk_cp_ac8_estado " +
+                "CHECK (Estado <> 'ACEPTADO')"
+            );
+        }        
+    }
+
+    private void eliminarRestriccionTemporalEstadoSolicitud(Connection conn) {
+        try (Statement st = conn.createStatement()) {
+            st.execute("ALTER TABLE Solicitud DROP CHECK chk_cp_ac8_estado");
         } catch (SQLException ignored) {
         }
     }
