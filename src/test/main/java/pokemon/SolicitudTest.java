@@ -35,6 +35,10 @@ public class SolicitudTest {
     private int idCarta3;
     private int idSolicitudTest;
 
+    // -------------------------------------------------------------------------
+    // Setup / Teardown
+    // -------------------------------------------------------------------------
+
     @BeforeEach
     void setUp() throws Exception {
         Class.forName("com.mysql.cj.jdbc.Driver");
@@ -83,6 +87,10 @@ public class SolicitudTest {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // CP AS-1 : Alta Solicitud - insercion correcta
+    // -------------------------------------------------------------------------
+
     @Test
     void altaSolicitud_CP_AS1_insercionCorrecta() throws Exception {
         Solicitud solicitud = Solicitud.crear(idCarta1, idCarta2, "User2");
@@ -103,6 +111,10 @@ public class SolicitudTest {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // CP AS-2 : Alta Solicitud - insercion falla
+    // -------------------------------------------------------------------------
+
     @Test
     void altaSolicitud_CP_AS2_insercionFalla() {
         Exception ex = assertThrows(Exception.class,
@@ -110,6 +122,10 @@ public class SolicitudTest {
 
         assertNotNull(ex.getMessage());
     }
+
+    // -------------------------------------------------------------------------
+    // CP AC-1 : Aceptar Solicitud - estado no pendiente
+    // -------------------------------------------------------------------------
 
     @Test
     void aceptarSolicitud_CP_AC1_estadoNoPendiente() throws Exception {
@@ -138,6 +154,10 @@ public class SolicitudTest {
         assertThrows(IllegalStateException.class, solicitud::aceptar);
     }
 
+    // -------------------------------------------------------------------------
+    // CP AC-2 : Aceptar Solicitud - primera carta no existe
+    // -------------------------------------------------------------------------
+
     @Test
     @DisplayName("CP AC-2 - Primera carta no existe")
     void aceptarSolicitud_CP_AC2_primeraCartaNoExiste() throws Exception {
@@ -161,6 +181,10 @@ public class SolicitudTest {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // CP AC-3 : Aceptar Solicitud - segunda carta no existe
+    // -------------------------------------------------------------------------
+
     @Test
     @DisplayName("CP AC-3 - Segunda carta no existe")
     void aceptarSolicitud_CP_AC3_segundaCartaNoExiste() throws Exception {
@@ -183,6 +207,10 @@ public class SolicitudTest {
             assertEquals("PENDIENTE", getEstadoSolicitud(conn, idSolicitudTest));
         }
     }
+
+    // -------------------------------------------------------------------------
+    // CP AC-4 : Aceptar Solicitud - camino correcto
+    // -------------------------------------------------------------------------
 
     @Test
     @DisplayName("CP AC-4 - Aceptacion correcta")
@@ -208,6 +236,10 @@ public class SolicitudTest {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // CP AC-5 : Aceptar Solicitud - fallo en la primera actualizacion
+    // -------------------------------------------------------------------------
+
     @Test
     @DisplayName("CP AC-5 - Falla la primera actualizacion")
     void aceptarSolicitud_CP_AC5_falloPrimeraActualizacion() throws Exception {
@@ -232,6 +264,10 @@ public class SolicitudTest {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // CP AC-6 : Aceptar Solicitud - fallo en la segunda actualizacion
+    // -------------------------------------------------------------------------
+
     @Test
     void aceptarSolicitud_CP_AC6_falloSegundaActualizacion() throws Exception {
         Solicitud solicitud = Solicitud.crear(idCarta1, idCarta2, "User2");
@@ -248,6 +284,10 @@ public class SolicitudTest {
         assertThrows(Exception.class, solicitud::aceptar);
     }
 
+    // -------------------------------------------------------------------------
+    // CP AC-7 : Aceptar Solicitud - fallo en la actualizacion final
+    // -------------------------------------------------------------------------
+
     @Test
     void aceptarSolicitud_CP_AC7_falloActualizacionSolicitud() throws Exception {
         Solicitud solicitud = Solicitud.crear(idCarta1, idCarta2, "User2");
@@ -263,6 +303,10 @@ public class SolicitudTest {
 
         assertThrows(Exception.class, solicitud::aceptar);
     }
+
+    // -------------------------------------------------------------------------
+    // Metodos auxiliares
+    // -------------------------------------------------------------------------
 
     private int insertarCarta(Connection conn, String dueno, String nombre, String estado) throws Exception {
         try (PreparedStatement ps = conn.prepareStatement(
