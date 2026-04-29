@@ -55,6 +55,7 @@ public class SolicitudTest {
     void tearDown() throws Exception {
         try (Connection conn = DriverManager.getConnection(URL, DB_USER, DB_PASSWORD)) {
             eliminarRestriccionTemporalCarta(conn);
+            eliminarRestriccionTemporalEstadoSolicitud(conn);
 
             for (int id : new int[]{idCarta1, idCarta2, idCarta3}) {
                 if (id > 0) {
