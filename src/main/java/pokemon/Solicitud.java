@@ -153,6 +153,46 @@ public class Solicitud {
         );
     }
 
+    public static List<ResumenSolicitud> buscarSolicitud(String textoBusqueda) {
+        List<ResumenSolicitud> resultado = new ArrayList<ResumenSolicitud>();
+        DatabaseManager db = new DatabaseManager();
+        try {
+            db.connect();
+            Connection conn = db.getConnection();
+            String sql =
+                    "SELECT s.id_solicitud, c1.Nombre AS cartaSolicitada, s.Dueno1, " +
+                    "c2.Nombre AS cartaOfrecida, s.Dueno2, s.Estado, " +
+                    "DATE_FORMAT(s.FechaSolicitud, '%Y-%m-%d') AS fecha " +
+                    "FROM Solicitud s " +
+                    "JOIN Carta c1 ON c1.id_carta = s.id_carta1 " +
+                    "JOIN Carta c2 ON c2.id_carta = s.id_carta2 " +
+                    "WHERE s.Dueno1=? OR s.Dueno2=? " +
+                    "ORDER BY s.FechaSolicitud DESC";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, textoBusqueda);
+                ps.setString(2, textoBusqueda);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        resultado.add(new ResumenSolicitud(
+                                rs.getInt("id_solicitud"),
+                                rs.getString("cartaSolicitada"),
+                                rs.getString("Dueno1"),
+                                rs.getString("cartaOfrecida"),
+                                rs.getString("Dueno2"),
+                                rs.getString("Estado"),
+                                rs.getString("fecha")
+                        ));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Error al buscar solicitud.", e);
+        } finally {
+            db.disconnect();
+        }
+        return resultado;
+    }
+
     public static List<ResumenSolicitud> obtenerSolicitudesEnviadas(String dueno2) throws Exception {
         return obtenerResumenes(
                 "SELECT s.id_solicitud, c1.Nombre AS cartaSolicitada, s.Dueno1, c2.Nombre AS cartaOfrecida, " +
